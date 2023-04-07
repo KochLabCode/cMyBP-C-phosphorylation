@@ -10,13 +10,9 @@ https://doi.org/10.1101/2023.02.24.529959
 
 To successfully reproduce the results you will need:
 - COPASI (http://copasi.org/)
-- PythonL
-	-> JupyterLab (or a similar environment for running *.ipynb notebooks)
-	-> An environment for running *.py scripts
+- Python: JupyterLab (or a similar environment for running *.ipynb notebooks) and  an environment for running *.py scripts
 
-We recommend using Anaconda, which will enable you to recreate the exact environments
-with all the python packages and versions used in this study by importing the respective
-*.yaml files.
+We recommend using Anaconda, which will enable you to recreate the exact environments with all the python packages and versions used in this study by importing the respective *.yaml files.
 
 Below is a short description of the directories and files:
 
