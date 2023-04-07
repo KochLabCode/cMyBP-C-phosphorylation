@@ -1,4 +1,4 @@
-# cMyBP-C-phosphorylation
+# cMyBP-C phosphorylation
 
 ODE model of cardiac myosin binding protein C (cMyBP-C) phosphorylation in the context of multiple enzymes.
 The code reproduces the simulation results and analyses from the publication:
