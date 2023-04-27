@@ -1,6 +1,5 @@
-# cMyBP-C phosphorylation
+# cMyBP-C-phosphorylation
 
-ODE model of cardiac myosin binding protein C (cMyBP-C) phosphorylation in the context of multiple enzymes.
 The code reproduces the simulation results and analyses from the publication:
 
 Thomas Kampourakis, Saraswathi Ponnam, Daniel Koch (2023):
@@ -10,13 +9,30 @@ https://doi.org/10.1101/2023.02.24.529959
 
 To successfully reproduce the results you will need:
 - COPASI (http://copasi.org/)
-- Python: JupyterLab (or a similar environment for running *.ipynb notebooks) and  an environment for running *.py scripts
+- Python (v 3.8)
+	- JupyterLab (or a similar environment for running *.ipynb notebooks)
+	- An environment for running *.py scripts
 
-We recommend using Anaconda, which will enable you to recreate the exact environments with all the python packages and versions used in this study by importing the respective *.yaml files.
+We recommend using Anaconda, which will enable you to recreate the exact environments
+with all the python packages and versions used in this study by importing the respective
+*.yaml files.
+
+In case you want to create an ennvironment manually, the following Python softwares 
+and packages were used in this study:
+
+- Spyder IDE v5.1.5 
+- JupyterLab v3.4.4
+- basico v0.4
+- numpy v1.21.5
+- matplotlib v3.5.0
+- pandas v1.4.4
+- scipy v1.9.3
+- statsmodels v0.13.2
+
 
 Below is a short description of the directories and files:
 
->MAIN:
+>MAIN FOLDER:
 
 	simulations.py
 	Predictive simulations shown in Figure 3 and several supplementary figures.
