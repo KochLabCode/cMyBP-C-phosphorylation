@@ -78,11 +78,17 @@ SEMs_HF_fit_ctrl = SDs_HF_fit/np.sqrt(fitvalsFailingHeartsCtrl.shape[0])
 
 
 #%% Plot Copeland data and fitted values (Figure 4A)
+
+cmap = cm.get_cmap('gnuplot2',7)
+colV = []
+for i in [0,0.3,0.5,0.6,0.8]: colV.append(cmap(i)[:3])
+c4P,c3P,c2P,c1P,c0P = colV
+
 c4P_2 =  (0.25,0.25,0.25) 
-c3P =  (159/255, 5/255, 240/255) 
-c2P =  (206/255, 6/255, 101/255) 
-c1P =  (232/255, 116/255, 0/255) 
-c0P =  (255/255, 192/255, 128/255) 
+# c3P =  (159/255, 5/255, 240/255) 
+# c2P =  (206/255, 6/255, 101/255) 
+# c1P =  (232/255, 116/255, 0/255) 
+# c0P =  (255/255, 192/255, 128/255) 
 colors = [c0P,c1P,c2P,c3P,c4P_2]
 pstates = ['0P','1P','2P','3P','4P']
 width = 0.35 
@@ -331,7 +337,7 @@ for i in range(nstates):
 
 plt.figure(figsize=(14,4))
 
-plt.vlines([5.5,10.5,15.5,20.5,25.5,30.5,35.5],0,1.25,colors='k',lw=1.2)
+plt.vlines([5.5,10.5,15.5,20.5,25.5,30.5,35.5],0,1.33,colors='k',lw=1.2)
 
 for i in range(8):
     for ii in range(1,6):
@@ -363,7 +369,7 @@ plt.xticks(np.linspace(3,38,8),['0P','$\\alpha$','$\\alpha\\beta$','$\\alpha\\be
 plt.yticks(fontsize=14)
 plt.ylabel('Maximum possible fraction',fontsize=16)
 # plt.title('PKA$_{max}$ = ' + str(vPKA[0]) + ' mol/L, Phosphatases$_{tot}$ = ' + str(vPPase[1]) + ' mol/L')
-plt.ylim([0,1.25])
+plt.ylim([0,1.33])
 plt.yticks([0,0.2,0.4,0.6,0.8,1])
 path = os.path.join(fileDirectory,'_')
 
