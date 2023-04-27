@@ -32,7 +32,7 @@ and packages were used in this study:
 
 Below is a short description of the directories and files:
 
->MAIN FOLDER:
+## MAIN FOLDER:
 
 	simulations.py
 	Predictive simulations shown in Figure 3 and several supplementary figures.
@@ -55,7 +55,7 @@ Below is a short description of the directories and files:
 	Auxilliary function for line plots with shaded error bars.
 
 
-SUBFOLDERS:
+## SUBFOLDERS:
 
 	>ENVIRONMENTS
 	Contains the Anaconda environments with all python packages and their specific versions used. 
