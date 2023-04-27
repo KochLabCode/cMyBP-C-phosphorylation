@@ -2,7 +2,7 @@
 
 """
 This code generates the comparison results between model simulations/fits and experimental data
-shown in Figures 2C and E, S2-S7, S9-S10 and S13-S15 of the publication:
+shown in Figures 2C and E,3G, S2-S7, S9-S10 and S13-S15 of the publication:
 
 Thomas Kampourakis, Saraswathi Ponnam, Daniel Koch (2023):
 The cardiac myosin binding protein-C phosphorylation state 
@@ -23,34 +23,39 @@ Code by Daniel Koch, 2021-2023
 
 #%% cell 0: Import and misc settings
 import os
+import sys
+
+#paths
+fileDirectory = os.path.dirname(os.path.abspath(__file__))
+path_simdat = os.path.join(fileDirectory, 'simulation data')   
+path_figures = os.path.join(fileDirectory, 'figures')   
+path_expdat = os.path.join(fileDirectory, 'experimental data')  
+path_paramsets = os.path.join(fileDirectory, 'parametersets')
+ 
+sys.path.append(fileDirectory)
+
+
 import models_cMyBPC as mod 
 import functions_cMyBPC as fun
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from scipy import stats
 import warnings
 warnings.filterwarnings("error")
 plt.rcParams.update({'font.family':'Arial'})
 
-saveFigs = False # save figures as files
-loadData = False # load result from previous simulations if available 
+saveFigs = True # save figures as files
+loadData = True # load result from previous simulations if available 
 saveData = False # data of simulations for comparison are saved  
 plotFigures = True # plot results from simulations
 
-#paths
-fileDirectory = os.path.dirname(os.path.abspath(__file__))
-path_paramsets = os.path.join(fileDirectory, 'parametersets')   
-path_simdat = os.path.join(fileDirectory, 'simulation data')   
-path_figures = os.path.join(fileDirectory, 'figures')   
-path_expdat = os.path.join(fileDirectory, 'experimental data')  
 
 # define colors for plotting
-c4P =  (0,0,0) 
-c3P =  (159/255, 5/255, 240/255) 
-c2P =  (206/255, 6/255, 101/255) 
-c1P =  (232/255, 116/255, 0/255) 
-c0P =  (255/255, 192/255, 128/255) 
-colV = [c4P,c3P,c2P,c1P,c0P]
+cmap = cm.get_cmap('gnuplot2',7)
+colV = []
+for i in [0,0.3,0.5,0.6,0.8]: colV.append(cmap(i)[:3])
+c4P,c3P,c2P,c1P,c0P = colV
 xPstr = ['4P','3P','2P','1P','0P']
 
 # dictionary for storing AIC scores
@@ -1075,7 +1080,7 @@ if plotFigures:
     plt.figure(666).suptitle('model 4, all experiments, additional parameters')
     
     plt.subplot(1,6,1)
-    for i in idx_incl:
+    for i in idx_incl_m4:
         plt.plot(paramsHJ[i,62].T, 'ok',alpha=0.15,ms=5)
     ax = plt.gca()
     ax.set_xticks([0])
@@ -1083,7 +1088,7 @@ if plotFigures:
     plt.ylabel("parameter value ($s^{-1}$)")
     
     plt.subplot(1,6,2)
-    for i in idx_incl:
+    for i in idx_incl_m4:
         plt.plot(paramsHJ[i,63].T, 'ok',alpha=0.15,ms=5)
     ax = plt.gca()
     ax.set_xticks([0])
@@ -1091,7 +1096,7 @@ if plotFigures:
     plt.ylabel("parameter value ($M$)")
     
     plt.subplot(1,6,3)
-    for i in idx_incl:
+    for i in idx_incl_m4:
         plt.plot(paramsHJ[i,66].T, 'ok',alpha=0.15,ms=5)
     ax = plt.gca()
     ax.set_xticks([0])
@@ -1099,15 +1104,15 @@ if plotFigures:
     plt.ylabel("parameter value ($s^{-1}$)")
     
     plt.subplot(1,6,4)
-    for i in idx_incl:
+    for i in idx_incl_m4:
         plt.plot(paramsHJ[i,67].T, 'ok',alpha=0.15,ms=5)
     ax = plt.gca()
     ax.set_xticks([0])
-    ax.set_xticklabels(['K$_{4, fast}$'])
+    ax.set_xticklabels(['K$_{3, fast}$'])
     plt.ylabel("parameter value ($M$)")
     
     plt.subplot(1,6,5)
-    for i in idx_incl:
+    for i in idx_incl_m4:
         plt.plot(paramsHJ[i,64].T, 'ok',alpha=0.15,ms=5)
     ax = plt.gca()
     ax.set_xticks([0])
@@ -1115,7 +1120,7 @@ if plotFigures:
     plt.ylabel("parameter value ($s^{-1}$)")
     
     plt.subplot(1,6,6)
-    for i in idx_incl:
+    for i in idx_incl_m4:
         plt.plot(paramsHJ[i,65].T, 'ok',alpha=0.15,ms=5)
     ax = plt.gca()
     ax.set_xticks([0])
@@ -1135,13 +1140,89 @@ if plotFigures:
 lifetimes = []
 for i in paramsHJ[idx_incl_m4,64]:
     lifetimes.append(1/i)
+    
+#%% cell 9: specificity ratios PKA/PPX  (Figure 3H, run cell 3 and cell 8 first)
+
+spec = paramsHJ[idx_incl_m4,2:32].T/paramsHJ[idx_incl_m4,32:62].T
+
+
+r1 = spec[6]/spec[7]      #v7 vs v8
+r2 = spec[27]/spec[28]    #v28 vs v29
+r3 = spec[6]/spec[8]      #v7 vs v9
+r4 = spec[27]/spec[29]    #v28 vs v30
+
+plt.figure(figsize=(2.5,3))
+plt.plot([r1,r2,r3,r4],'o',color = 'b', alpha=0.25,ms=7)
+plt.plot(np.median(np.asarray([r1,r2,r3,r4]),axis = 1),'_r',ms=20)
+
+for i in range(spec.shape[1]):
+    plt.plot([0,1],[r1[i],r2[i]],'-',color = 'b', alpha=0.15,lw=0.75)
+    plt.plot([2,3],[r3[i],r4[i]],'-',color = 'b', alpha=0.15,lw=0.75)
+
+# plt.title('Specificity ratio \n phosphorylation cycle \n \n \n', fontsize=13)
+ax = plt.gca()
+ax.set_xticks(np.arange(4))
+xlabs = ['$\\alpha\\beta \\ \\leftrightarrows \\ \\alpha\\beta\\gamma$',
+         '$\\alpha\\beta\\delta \\  \\leftrightarrows  \\ \\alpha\\beta\\gamma\\delta$',
+         '$\\alpha\\beta  \\ \\leftrightarrows \\  \\alpha\\beta\\gamma$',
+         '$\\alpha\\beta\\delta  \\ \\leftrightarrows  \\ \\alpha\\beta\\gamma\\delta$']
+         
+         
+ax.set_xticklabels(xlabs,rotation = 45,size=13)  
+
+plt.ylabel("Specificity ratio",size=14.5)
+
+plt.ylim(0,70)
+plt.xlim(-0.5,3.5)
+
+plt.savefig(os.path.join(path_figures,'specificitiesRatios.png'),dpi=300, bbox_inches = "tight")
+
+mw_pp1 = stats.mannwhitneyu(r1,r2, alternative='two-sided')
+mw_pp2a = stats.mannwhitneyu(r3,r4, alternative='two-sided')
+
+print("Result Mann-Whitney test specificity ratios pp1: \n", mw_pp1,'\n\n',
+      "Result Mann-Whitney test specificity ratios pp2a: \n", mw_pp2a,'\n\n')
+
+# Comparison specifity constants for PP1 and PP2A (run cell 3 and cell 8 first)
+
+# spec = paramsHJ[idx_incl_m4,2:32].T/paramsHJ[idx_incl_m4,32:62].T
+
+# rxs_pp1 = [1,4,7,10,13,16,19,22,25,28]
+# rxs_pp2a = [2,5,8,11,14,17,20,23,26,29]
+# rxs_pka = [0,3,6,21,24,27]
+
+# specRatio_pp1_pp2a = spec[rxs_pp1]/spec[rxs_pp2a]
+
+# plt.figure()
+# plt.plot(specRatio_pp1_pp2a,'o',color='k',alpha=0.15,ms=5)
+# plt.yscale('log')
+# plt.hlines(1,0,9,colors='red',linestyles='dashed')
+
+# xlabs = ['$\\alpha \\rightarrow$ 0P',
+#     '$\\alpha\\beta \\rightarrow \\alpha$\'',
+#     '$\\alpha\\beta\\gamma \\rightarrow \\alpha\\beta$',
+#     '$\\delta \\rightarrow$ 0P',
+#     '$\\alpha\\delta \\rightarrow \\alpha$\'',
+#     '$\\alpha\\beta\\delta \\rightarrow \\alpha\\beta$',
+#     '$\\alpha\\beta\\gamma\\delta \\rightarrow \\alpha\\gamma\\beta$',
+#     '$\\alpha\\delta \\rightarrow \\delta$',
+#     '$\\alpha\\beta\\delta \\rightarrow \\alpha\\delta$',
+#     '$\\alpha\\beta\\gamma\\delta \\rightarrow \\alpha\\beta\\delta$']
+
+# plt.title('Reaction')
+# ax = plt.gca()
+# ax.set_xticks(np.arange(10))
+# ax.set_xticklabels(xlabs,rotation = 90)  
+# # ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
+# plt.ylabel("$(k_{cat,PP1}/K_{m,PP1})/(k_{cat,PP2A}/K_{m,PP2A})$")
+# plt.savefig(os.path.join(path_figures,'specificitiesPP1vsPP2a.png'),dpi=300, bbox_inches = "tight")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#%% cell 9: Calculate statistics for AIC:  model 1-4, PP1 data. Figure 2 and Figure S7 (run cells 4-7 first)
+#%% cell 10: Calculate statistics for AIC:  model 1-4, PP1 data. Figure 2 and Figure S7 (run cells 4-7 first)
 
 print ('\n \n Calculate statistics for AIC:  model 1-4, PP1 data...\n')
 
@@ -1185,7 +1266,7 @@ plt.tight_layout()
 
 if saveFigs == True:
     print("figure AIC_m1m3m4_pp1.png saved")
-    plt.savefig(os.path.join(path_figures,'AIC_m1m3m4_pp1.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'AIC_m1m3m4_pp1.png'),dpi=500, bbox_inches = "tight")
 
 
 print('Distribution measures of AIC values')
@@ -1225,7 +1306,7 @@ print("Result Kruskal-Wallis test model 1,3 and 4: ", kw_result,'\n\n',
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#%% cell 10: Calculate statistics for AIC:  model 1 and 4, all data. Figure S15 (run cells 3 and 8 first)
+#%% cell 11: Calculate statistics for AIC:  model 1 and 4, all data. Figure S15 (run cells 3 and 8 first)
 print ('\n \n Calculate statistics for AIC:  model 1 and 4, all data....\n')
 
 #plot AIC distribution for models 1 and 4

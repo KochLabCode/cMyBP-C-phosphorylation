@@ -655,3 +655,4 @@ def cMyBPC_model_final_RSK2(t,ICs,params,naFun,naFunParams):
     dABGDdt = v19  + v28  - v20  - v21  - v29  - v30 
 
     return np.array([dP0dt, dAdt, dAtr, dABdt, dABGdt, dDdt, dADdt, dABDdt, dABGDdt])
+    

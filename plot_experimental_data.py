@@ -22,16 +22,17 @@ import sys
 
 #paths
 fileDirectory = os.path.dirname(os.path.abspath(__file__))   
-path_figures = os.path.join(fileDirectory, 'figures\\simulations')   
+path_figures = os.path.join(fileDirectory, 'figures')   
 path_expdat = os.path.join(fileDirectory, 'experimental data')  
 sys.path.append(fileDirectory)
-
 
 import functions_cMyBPC as fun
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-
+from matplotlib import cm
+from scipy import stats
+from statsmodels.stats.multitest import fdrcorrection
 
 plt.rcParams.update({'font.family':'Arial'})
 
@@ -42,13 +43,12 @@ if saveFigs == True and os.path.exists(path_figures) == False:
 
 
 # define colors for plotting
-c4P =  (0,0,0) 
-c3P =  (159/255, 5/255, 240/255) 
-c2P =  (206/255, 6/255, 101/255) 
-c1P =  (232/255, 116/255, 0/255) 
-c0P =  (255/255, 192/255, 128/255) 
-colV = [c4P,c3P,c2P,c1P,c0P]
+cmap = cm.get_cmap('gnuplot2',7)
+colV = []
+for i in [0,0.3,0.5,0.6,0.8]: colV.append(cmap(i))
 xPstr = ['4P','3P','2P','1P','0P']
+
+
 
 # plotting functions
 
@@ -172,3 +172,38 @@ plt.xticks([]); plt.ylim([0,3])
 plt.title('n$_H$',weight='bold',fontsize=14)
 print("figure "+'exp_SS_PKAvsPP1_inset'+'.png'+" saved")
 plt.savefig(os.path.join(path_figures, 'exp_SS_PKAvsPP1_inset'+'.png'),dpi=300, bbox_inches = "tight")
+
+
+#%% SYPRO data
+
+# paths to experimental data
+datFlNm = os.path.join(path_expdat, 'SYPRO_plotting.txt')
+
+dataRaw = np.loadtxt(datFlNm,delimiter='\t',dtype=str)
+SYPRO_exp = np.asarray(dataRaw[1:,:],dtype='float')
+
+plt.figure(figsize=(2.5,4))
+plt.plot(np.arange(1,5),np.mean(SYPRO_exp,axis = 0),'_k',ms=20)
+for i in range(4):
+    plt.scatter(np.ones(4)*(i+1),SYPRO_exp[:,i],color=colV[4-i],s=70,ec='k')
+
+plt.ylabel('Normalized Fluorescence (600 nm)',fontsize=15)
+plt.xlim(0,5)
+plt.ylim(85,110)
+plt.yticks(fontsize=13)
+ax = plt.gca()
+ax.set_xticks(np.arange(1,5))
+xlabs = ['0P','$\\alpha$','$\\alpha\\beta$','$\\alpha\\beta\\gamma$']
+ax.set_xticklabels(xlabs,rotation = 45,size=15)  
+plt.savefig(os.path.join(path_figures, 'SYPROdata.png'),dpi=400, bbox_inches = "tight")
+
+
+print('Analysis Sypro data')
+print('-------------------')
+pvals = []
+for i in range(3):
+    pvals.append(stats.ttest_1samp(a=SYPRO_exp[:,i+1], popmean=100)[1])
+stats_corrected = fdrcorrection(pvals)
+for i in range(3):
+    print(['alpha','alpha,beta','alpha,beta,gamma'][i]+' significantly different from 0P? ', stats_corrected[0][i], ' p = ', stats_corrected[1][i])
+

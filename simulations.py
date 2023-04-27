@@ -27,14 +27,15 @@ cell 4: Steady state PKA vs PP1/PP2A (Figure 3A,E S19)
 cell 5: Steady state RSK2 vs PP1/PP2A (Figure S18)
 cell 6: Steady state PKA vs PP1/PP2A in presence of RSK2 (Figure 3C,E S19)
 cell 7: Steady state PKC vs PP1/PP2A (Figure S18)
-cell 8: Steady state PKA vs PP1/PP2A in presence of PKC (Figure 3C,E D)
+cell 8: Steady state PKA vs PP1/PP2A in presence of PKC (Figure 3C,D,E)
 
 (For reproducing Figure 3E, cells 4, 6 and 8 need to be run subsequently)
 
+
 ==~~==~~==~~== DATA ANALYSIS ==~~==~~==~~==~~==~~==~~==~
-(only execute after cells 4-8)
-cell 9: Plot dose response comparisons of fitted Hill parameters (Figure 3F)
-cell 10: Statistical analysis (Table S1)
+(only execute after running and saving data from cells 4-8)
+cell 10: Plot dose response comparisons of fitted Hill parameters (Figure 3F and 3H)
+cell 11: Statistical analysis (Table S1)
 
 
 Code by Daniel Koch, 2021-2023
@@ -60,6 +61,7 @@ from scipy import stats
 from scipy.optimize import curve_fit
 from statsmodels.stats.multitest import fdrcorrection
 import warnings
+from matplotlib import cm
 
 
 #%% cell 1: Miscellaneous settings
@@ -67,9 +69,9 @@ import warnings
 warnings.filterwarnings("error")
 plt.rcParams.update({'font.family':'Arial'})
 
-saveFigs = True # saves figures as files
+saveFigs = False # saves figures as files
 loadData = False #  loads result from previous simulations if available 
-saveData = True #  save result from simulations (only if loadData = True)
+saveData = False #  save result from simulations (only if loadData = True)
 plotFigures = True # plot results from simulations
 printSimProg = True # print simulation progress to console
 
@@ -99,20 +101,16 @@ paramsHJ[:,[12,15,18,21]] = pkc_kcat
 # Add experimentally measured RSK2 parameters to fitted parameterset
 paramsRSK2 = np.array([1.8,1.8,1.3e-6,1.3e-6]) # kcat reaction 31 and 32, Km reaction 31 and 32
 
-# Dictionary to which fitted dose-response parameters will be added
-# for statistical analysis. Each entry will be a list consisting of
-# nH values, nHs avg, nHs sd, EC50 values, EC50 avg, EC50 sd
-doseResponses = {} 
 
 #%% cell 2: Function definitions 
 
 # define colors for plotting
-c4P =  (0,0,0) 
-c3P =  (159/255, 5/255, 240/255) 
-c2P =  (206/255, 6/255, 101/255) 
-c1P =  (232/255, 116/255, 0/255) 
-c0P =  (255/255, 192/255, 128/255) 
-colV = [c4P,c3P,c2P,c1P,c0P]
+cmap = cm.get_cmap('gnuplot2',7)
+colV = []
+for i in [0,0.3,0.5,0.6,0.8]: colV.append(cmap(i)[:3])
+c4P,c3P,c2P,c1P,c0P = colV
+xPstr = ['4P','3P','2P','1P','0P']
+
 
 
 def plot_timecourse(time):
@@ -131,11 +129,11 @@ def plot_timecourse(time):
 
         #plot averages
                             
-        plt.plot(time,avg_0P,color=c0P, alpha=0.5, lw=1.75)        
-        plt.plot(time,avg_1P,color=c1P, alpha=0.5, lw=1.75)   
-        plt.plot(time,avg_2P,color=c2P, alpha=0.5, lw=1.75) 
-        plt.plot(time,avg_3P,color=c3P, alpha=0.5, lw=1.75) 
-        plt.plot(time,avg_4P,color=c4P, alpha=0.5, lw=1.75) 
+        plt.plot(time,avg_0P,color=c0P, alpha=0.5, lw=2.75)        
+        plt.plot(time,avg_1P,color=c1P, alpha=0.5, lw=2.75)   
+        plt.plot(time,avg_2P,color=c2P, alpha=0.5, lw=2.75) 
+        plt.plot(time,avg_3P,color=c3P, alpha=0.5, lw=2.75) 
+        plt.plot(time,avg_4P,color=c4P, alpha=0.5, lw=2.75) 
         
         #plot SD
         plt.fill_between(time, avg_0P-sd_0P, avg_0P+sd_0P, color=c0P,alpha=0.15)
@@ -167,11 +165,11 @@ def plot_SS_3D(kinase_name, kinase_vector, PPase_name,PPase_vector,xtick_array =
         
         #plot averages
                             
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_0P,color=c0P, alpha=0.5, lw=2)
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_1P,color=c1P, alpha=0.5, lw=2)   
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_2P,color=c2P, alpha=0.5, lw=2) 
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_3P,color=c3P, alpha=0.5, lw=2) 
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_4P,color=c4P, alpha=0.5, lw=2)
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_0P,color=c0P, alpha=0.5, lw=2.75)
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_1P,color=c1P, alpha=0.5, lw=2.75)   
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_2P,color=c2P, alpha=0.5, lw=2.75) 
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_3P,color=c3P, alpha=0.5, lw=2.75) 
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_4P,color=c4P, alpha=0.5, lw=2.75)
         
         #plot errors
         
@@ -223,10 +221,10 @@ def plot_SS_3D_noD(kinase_name, kinase_vector, PPase_name,PPase_vector,xtick_arr
         
         #plot averages
                             
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_0P,color=c0P, alpha=0.5, lw=2)
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_A,color=c1P, alpha=0.5, lw=2)   
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_AB,color=c2P, alpha=0.5, lw=2) 
-        plt.plot(np.log(kinase_vector),np.log(PPase),avg_ABG,color=c3P, alpha=0.5, lw=2) 
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_0P,color=c0P, alpha=0.5, lw=2.5)
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_A,color=c1P, alpha=0.5, lw=2.5)   
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_AB,color=c2P, alpha=0.5, lw=2.5) 
+        plt.plot(np.log(kinase_vector),np.log(PPase),avg_ABG,color=c3P, alpha=0.5, lw=2.5) 
         
         #plot errors
         
@@ -452,46 +450,6 @@ if saveFigs == True:
     plt.savefig(os.path.join(path_figures,'SS_PKAvsPP1.png'),dpi=300, bbox_inches = "tight")
 
 
-# Dose response fit to Hill equation
-
-plt.figure(222, figsize=(20,4))
-
-PPaseV = PP1v
-nHs_hill = []
-Ks_hill = []
-
-for p in range(len(PPaseV)):
-
-    plt.subplot(1,len(PPaseV)+1,p+1)
-        
-    for i in range(nr_paramsets):
-        plt.plot(PKAv, simDat_rel_fracs_SS[i,p,:,1], 'o', color = 'gold', alpha = 0.1)
-        par_opt, _ = curve_fit(fun.hillEQ, PKAv, simDat_rel_fracs_SS[i,p,:,1], p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        nHs_hill.append(par_opt[0])
-        Ks_hill.append(par_opt[1])
-    plt.xscale('log')
-    
-nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
-nH_avg = np.average(nHs_hill,axis = 1)
-nH_sd = np.std(nHs_hill,axis = 1)
-
-Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
-Ks_avg = np.average(Ks_hill,axis = 1)
-Ks_sd = np.std(Ks_hill,axis = 1)
-
-# plot average fit
-for p in range(len(PPaseV)):
-    plt.subplot(1,len(PPaseV)+1,p+1)
-    plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-', color = 'gold', lw = 2)
-    plt.title('[PPase] (M) = '+str(PPaseV[p]))
-    #if p == 0: 
-    plt.ylabel('fraction $\\alpha\\beta\\gamma$')
-    plt.xlabel('[PKA] (M)')
-
-# nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
-# nHs and EC50s each of len(PPase)x NrParamsets dimension
-doseResponses['PKAvsPP1'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
-
 #=====================================================
     
 # PKA vs PP2A
@@ -545,45 +503,6 @@ plot_SS_3D('PKA',PKAv,'PP2A', PP2Av)
 if saveFigs == True:
     plt.savefig(os.path.join(path_figures,'SS_PKAvsPP2A.png'),dpi=300, bbox_inches = "tight")
 
-# Dose response fit to Hill equation
-
-plt.figure(333, figsize=(20,4))
-
-PPaseV = PP2Av
-nHs_hill = []
-Ks_hill = []
-
-for p in range(len(PPaseV)):
-
-    plt.subplot(1,len(PPaseV)+1,p+1)
-        
-    for i in range(nr_paramsets):
-        plt.plot(PKAv, simDat_rel_fracs_SS[i,p,:,1], 'o', color = 'gold', alpha = 0.1)
-        par_opt, _ = curve_fit(fun.hillEQ, PKAv, simDat_rel_fracs_SS[i,p,:,1], p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        nHs_hill.append(par_opt[0])
-        Ks_hill.append(par_opt[1])
-    plt.xscale('log')
-    
-nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
-nH_avg = np.average(nHs_hill,axis = 1)
-nH_sd = np.std(nHs_hill,axis = 1)
-
-Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
-Ks_avg = np.average(Ks_hill,axis = 1)
-Ks_sd = np.std(Ks_hill,axis = 1)
-
-# plot average fit
-for p in range(len(PPaseV)):
-    plt.subplot(1,len(PPaseV)+1,p+1)
-    plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-', color = 'gold', lw = 2)
-    plt.title('[PPase] (M) = '+str(PPaseV[p]))
-    #if p == 0: 
-    plt.ylabel('fraction $\\alpha\\beta\\gamma$')
-    plt.xlabel('[PKA] (M)')
-
-# nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
-# nHs and EC50s each of len(PPase)x NrParamsets dimension
-doseResponses['PKAvsPP2A'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
 
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -783,49 +702,6 @@ plot_SS_3D('PKA',PKAv,'PP1', PP1v)
 if saveFigs == True:
     plt.savefig(os.path.join(path_figures,'SS_PKA+RSK2vsPP1.png'),dpi=300, bbox_inches = "tight")
 
-
-# Dose response fit to Hill equation
-
-plt.figure(222, figsize=(20,4))
-
-PPaseV = PP1v
-nHs_hill = []
-Ks_hill = []
-
-for p in range(len(PPaseV)):
-
-    plt.subplot(1,len(PPaseV)+1,p+1)
-        
-    for i in range(nr_paramsets):
-        ABG_D = (simDat_SS[i,p,:,4]+simDat_SS[i,p,:,8])/np.sum(simDat_SS[i,p,:,:],1)
-        plt.plot(PKAv, ABG_D, 'o',color='slateblue', alpha = 0.1)
-        par_opt, _ = curve_fit(fun.hillEQ, PKAv, ABG_D, p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        
-        nHs_hill.append(par_opt[0])
-        Ks_hill.append(par_opt[1])
-    plt.xscale('log')
-    
-nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
-nH_avg = np.average(nHs_hill,axis = 1)
-nH_sd = np.std(nHs_hill,axis = 1)
-
-Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
-Ks_avg = np.average(Ks_hill,axis = 1)
-Ks_sd = np.std(Ks_hill,axis = 1)
-
-# plot average fit
-for p in range(len(PPaseV)):
-    plt.subplot(1,len(PPaseV)+1,p+1)
-    plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-',color='slateblue', lw =2, alpha = 0.66)
-    plt.title('[PPase] (M) = '+str(PPaseV[p]))
-    #if p == 0: 
-    plt.ylabel('fraction $\\alpha\\beta\\gamma+\\alpha\\beta\\gamma\\delta$')
-    plt.xlabel('[PKA] (M)')
-
-# nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
-# nHs and EC50s each of len(PPase)x NrParamsets dimension
-doseResponses['PKARSK2vsPP1'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
-    
 # PKA vs PP2A
 
 PP2Av = np.array([1e-8,1e-7,1e-6])
@@ -876,52 +752,6 @@ plot_SS_3D('PKA',PKAv,'PP2A', PP2Av)
 if saveFigs == True:
     plt.savefig(os.path.join(path_figures,'SS_PKA+RSK2vsPP2A.png'),dpi=300, bbox_inches = "tight")
 
-
-# Dose response fit to Hill equation
-
-plt.figure(333, figsize=(20,4))
-
-PPaseV = PP2Av
-nHs_hill = []
-Ks_hill = []
-
-for p in range(len(PPaseV)):
-
-    plt.subplot(1,len(PPaseV)+1,p+1)
-        
-    for i in range(nr_paramsets):
-        ABG_D = (simDat_SS[i,p,:,4]+simDat_SS[i,p,:,8])/np.sum(simDat_SS[i,p,:,:],1)
-        plt.plot(PKAv, ABG_D, 'o',color='slateblue', alpha = 0.1)
-        par_opt, _ = curve_fit(fun.hillEQ, PKAv, ABG_D, p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        
-        nHs_hill.append(par_opt[0])
-        Ks_hill.append(par_opt[1])
-    plt.xscale('log')
-    
-nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
-nH_avg = np.average(nHs_hill,axis = 1)
-nH_sd = np.std(nHs_hill,axis = 1)
-
-Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
-Ks_avg = np.average(Ks_hill,axis = 1)
-Ks_sd = np.std(Ks_hill,axis = 1)
-
-# plot average fit
-for p in range(len(PPaseV)):
-    plt.subplot(1,len(PPaseV)+1,p+1)
-    plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-',color='slateblue', lw =2, alpha = 0.66)
-    plt.title('[PPase] (M) = '+str(PPaseV[p]))
-    #if p == 0: 
-    plt.ylabel('fraction $\\alpha\\beta\\gamma+\\alpha\\beta\\gamma\\delta$')
-    plt.xlabel('[PKA] (M)')
-
-# nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
-# nHs and EC50s each of len(PPase)x NrParamsets dimension
-doseResponses['PKARSK2vsPP2A'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     
 #%% cell 7: Steady state PKC vs PP1/PP2A (Figure S18)
@@ -1121,54 +951,6 @@ plot_SS_3D_noD('PKA', PKAv,'PP1', PP1v)
 if saveFigs == True:
     plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1_lumped.png'),dpi=300, bbox_inches = "tight")
 
-
-# Dose response fit to Hill equation
-
-plt.figure(222, figsize=(18,4))
-
-PPaseV = PP1v
-nHs_hill = []
-Ks_hill = []
-
-for p in range(len(PPaseV)):
-
-    plt.subplot(1,len(PPaseV)+1,p+1)
-        
-    for i in range(nr_paramsets):
-        ABG_D = (simDat_SS[i,p,:,4]+simDat_SS[i,p,:,8])/np.sum(simDat_SS[i,p,:,:],1)
-        plt.plot(PKAv, ABG_D, 'o',color='teal', alpha = 0.1)
-        par_opt, _ = curve_fit(fun.hillEQ, PKAv, ABG_D, p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        
-        nHs_hill.append(par_opt[0])
-        Ks_hill.append(par_opt[1])
-    plt.xscale('log')
-    
-nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
-nH_avg = np.average(nHs_hill,axis = 1)
-nH_sd = np.std(nHs_hill,axis = 1)
-
-Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
-Ks_avg = np.average(Ks_hill,axis = 1)
-Ks_sd = np.std(Ks_hill,axis = 1)
-
-# plot average fit
-for p in range(len(PPaseV)):
-    plt.subplot(1,len(PPaseV)+1,p+1)
-    plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-',color='teal', lw =2, alpha = 0.66)
-    plt.title('[PPase] (M) = '+str(PPaseV[p]))
-    #if p == 0: 
-    plt.ylabel('fraction $\\alpha\\beta\\gamma+\\alpha\\beta\\gamma\\delta$',fontsize=17)
-    plt.xlabel('[PKA] (mol/L)',fontsize=17)
-    plt.xticks(fontsize=14)
-    plt.xlim([5e-10,1e-6])
-
-if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'hillfit_pp1.png'),dpi=300, bbox_inches = "tight")
-
-# nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
-# nHs and EC50s each of len(PPase)x NrParamsets dimension
-doseResponses['PKAPKCvsPP1'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
-    
 #=====================================================
 
 # PKA vs PP2A
@@ -1226,55 +1008,105 @@ if saveFigs == True:
     plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP2A_lumped.png'),dpi=300, bbox_inches = "tight")
 
 
-# Dose response fit to Hill equation
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-plt.figure(333, figsize=(18,4))
+#%% cell 9: Steady state PKA vs PP1 with PP2A parameters for v26 in presence of PKC (Figure 3H)
 
-PPaseV = PP2Av
-nHs_hill = []
-Ks_hill = []
+from scipy.integrate import solve_ivp 
 
-for p in range(len(PPaseV)):
+# Load fitted parametersets for PKA, PP1, PP2A
+paramsHJ = np.load(os.path.join(path_paramsets,'paramset_final.npy'))
+nr_paramsets = paramsHJ.shape[0]
 
-    plt.subplot(1,len(PPaseV)+1,p+1)
+# Add experimentally measured PKC parameters to fitted parameterset
+pkc_Kms = np.linspace(3.167e-6,	7.537e-6,4)
+pkc_kcat = (5.053+5.262)/2
+paramsHJ[:,42] = pkc_Kms[0]
+paramsHJ[:,45] = pkc_Kms[1]
+paramsHJ[:,48] = pkc_Kms[2]
+paramsHJ[:,51] = pkc_Kms[3]
+paramsHJ[:,[12,15,18,21]] = pkc_kcat
+
+# Add experimentally measured RSK2 parameters to fitted parameterset
+paramsRSK2 = np.array([1.8,1.8,1.3e-6,1.3e-6]) # kcat reaction 31 and 32, Km reaction 31 and 32
+
+k = paramsHJ[:,2:32]
+K = paramsHJ[:,32:62]
+
+# # swap parameters
+k[:,[19,20]] = k[:,[20,19]]
+k[:,[25,26]] = k[:,[26,25]]
+
+K[:,[19,20]] = K[:,[20,19]]
+K[:,[25,26]] = K[:,[26,25]]
+
+
+PP1v = np.array([1e-8,1e-7,1e-6])
+PKAv = np.logspace(-11,-5, num=41)
+
+# Time setting for simulations
+t0 = 0
+t_end = 1*60*60 #h/min/s
+h = 1
+npts = int(t_end/h)
+time = np.linspace(t0,t_end,npts+1)        
+
+
+# Initial conditions
+ICs = np.zeros(9)    #P0,A,Atr,AB,ABG,D,AD,ABD,ABGD
+ICs[0] = 20e-6      #0P cMyBP-C  
+
+signalPulses = [0, t_end+1]
+simDat_SS = []      
+simDat_rel_fracs_SS = []
+
+if loadData == False:   
+        for p in range(nr_paramsets):#
+            if printSimProg == True:
+                print('simulation for parameterset '+str(p+1)+'/'+str(nr_paramsets))
+            for j in PP1v:
+                for jj in PKAv:
+                    c_enzymes = np.array([jj,1e-7,j,0,0]) #PKA, PKC, PP1, PP2A, RSK2
+                    
+                    
+                    additionalParams = paramsHJ[p,62:]
+                    params = [k,K,additionalParams,c_enzymes,paramsRSK2]
+                    
+                    # output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
+                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
+                    simDat_SS.append(output[:,t_end])
+                    simDat_rel_fracs_SS.append([
+                        fun.fraction(output,'4P',4)[t_end],
+                        fun.fraction(output,'3P',4)[t_end],
+                        fun.fraction(output,'2P',4)[t_end],
+                        fun.fraction(output,'1P',4)[t_end],
+                        fun.fraction(output,'0P',4)[t_end],
+                        ])
+            
+        simDat_SS = np.reshape(simDat_SS, (nr_paramsets,len(PP1v),len(PKAv),9))        
+        simDat_rel_fracs_SS = np.reshape(simDat_rel_fracs_SS, (nr_paramsets,len(PP1v),len(PKAv),5))
         
-    for i in range(nr_paramsets):
-        ABG_D = (simDat_SS[i,p,:,4]+simDat_SS[i,p,:,8])/np.sum(simDat_SS[i,p,:,:],1)
-        plt.plot(PKAv, ABG_D, 'o',color='teal', alpha = 0.1)
-        # par_opt, _ = curve_fit(fun.hillEQ, PKAv, simDat_rel_fracs_SS[i,p,:,1], p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        par_opt, _ = curve_fit(fun.hillEQ, PKAv, ABG_D, p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
-        
-        nHs_hill.append(par_opt[0])
-        Ks_hill.append(par_opt[1])
-    plt.xscale('log')
-    
-nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
-nH_avg = np.average(nHs_hill,axis = 1)
-nH_sd = np.std(nHs_hill,axis = 1)
+        if saveData == True:
+            np.save(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP1pp2ified_relFracs.npy'),simDat_rel_fracs_SS)
+            np.save(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP1pp2ified.npy'),simDat_SS)
+else:    
+    simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP1pp2ified_relFracs.npy'))
+    simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP1pp2ified.npy'))
+         
 
-Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
-Ks_avg = np.average(Ks_hill,axis = 1)
-Ks_sd = np.std(Ks_hill,axis = 1)
+plot_SS_3D('PKA', PKAv,'PP1', PP1v)
 
-# plot average fit
-for p in range(len(PPaseV)):
-    plt.subplot(1,len(PPaseV)+1,p+1)
-    plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-',color='teal', lw = 2)
-    plt.title('[PPase] (M) = '+str(PPaseV[p]))
-    # if p == 0: 
-    plt.ylabel('fraction $\\alpha\\beta\\gamma+\\alpha\\beta\\gamma\\delta$',fontsize=17)
-    plt.xlabel('[PKA] (mol/L)',fontsize=17)
-    plt.xticks(fontsize=14)
-    plt.xlim([5e-10,1e-6])
 
-    
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'hillfit_pp2a.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1pp2ified.png'),dpi=300, bbox_inches = "tight")
 
-
-# nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
-# nHs and EC50s each of len(PPase)x NrParamsets dimension
-doseResponses['PKAPKCvsPP2A'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1283,9 +1115,166 @@ doseResponses['PKAPKCvsPP2A'] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
 
 #%% ==~~==~~==~~== DATA ANALYSIS ==~~==~~==~~==~~==~~==~~==~
 
-#%% cell 9: Plot dose response comparisons of fitted Hill parameters (Figure 3F)
+#%% cell 10: Plot dose response comparisons of fitted Hill parameters (Figure 3F)
 
-# Hill exponents
+# Dictionary to which fitted dose-response parameters will be added
+# for statistical analysis. Each entry will be a list consisting of
+# nH values, nHs avg, nHs sd, EC50 values, EC50 avg, EC50 sd
+doseResponses = {} 
+
+
+
+# Hill fits PP1
+
+plt.figure(figsize=(20,4.5))
+
+PP1v = np.array([1e-8,1e-7,1e-6])
+PKAv = np.logspace(-11,-5, num=21)
+PKAv = PKAv[np.where(PKAv<=6e-6)]
+
+keys = ['PKAPKCvsPP1','PKARSK2vsPP1','PKAvsPP1']
+
+
+for i in range(3):
+    if i == 2:    
+        simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKAvsPP1_relFracs.npy'))
+        simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKAvsPP1.npy'))
+    if i == 1:    
+        simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_RSK2_vsPP1_relFracs.npy'))
+        simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_RSK2_vsPP1.npy'))
+    if i == 0:
+        simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP1_relFracs.npy'))
+        simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP1.npy'))
+    
+    # Dose response fit to Hill equation
+    
+    PPaseV = PP1v
+    nHs_hill = []
+    Ks_hill = []
+    
+    if i == 2: myColor = 'slateblue'; myAlpha = 0.75
+    if i == 1 or i == 4: myColor = 'pink'; myAlpha = 1
+    if i == 0: myColor = 'red'; myAlpha = 0.55
+    
+    for p in range(len(PPaseV)):
+    
+        plt.subplot(1,len(PPaseV)+1,p+1)
+            
+        for ii in range(nr_paramsets):
+            ABG_D = (simDat_SS[ii,p,:,4]+simDat_SS[ii,p,:,8])/np.sum(simDat_SS[ii,p,:,:],1)
+            plt.plot(PKAv, ABG_D, 'o', color = myColor, alpha = 0.1)
+            par_opt, _ = curve_fit(fun.hillEQ, PKAv, ABG_D, p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
+            nHs_hill.append(par_opt[0])
+            Ks_hill.append(par_opt[1])
+        plt.xscale('log')
+        if p == 1:
+            plt.xlim(5e-10,1e-6)
+        
+    nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
+    nH_avg = np.average(nHs_hill,axis = 1)
+    nH_sd = np.std(nHs_hill,axis = 1)
+    
+    Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
+    Ks_avg = np.average(Ks_hill,axis = 1)
+    Ks_sd = np.std(Ks_hill,axis = 1)
+    
+    # plot average fit
+    for p in range(len(PPaseV)):
+        plt.subplot(1,len(PPaseV)+1,p+1)
+        plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-', color = myColor, alpha=myAlpha, lw = 2.2)
+        plt.title('[PPase] (M) = '+str(PPaseV[p]),fontsize=14)
+        #if p == 0: 
+        plt.ylabel('fraction $\\alpha\\beta\\gamma$+$\\alpha\\beta\\gamma\\delta$',fontsize=15)
+        plt.xlabel('[PKA] (mol/L)',fontsize=15.5)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+    
+    
+    # nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
+    # nHs and EC50s each of len(PPase)x NrParamsets dimension
+    doseResponses[keys[i]] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
+
+plt.tight_layout()
+if saveFigs == True:
+    plt.savefig(os.path.join(path_figures,'hillfit_pp1.png'),dpi=400, bbox_inches = "tight")
+    
+
+# Hill fits PP2A
+
+plt.figure(figsize=(20,4.5))
+
+PP2Av = np.array([1e-8,1e-7,1e-6])
+PKAv = np.logspace(-11,-5, num=21)
+PKAv = PKAv[np.where(PKAv<=6e-6)]
+
+keys = ['PKAPKCvsPP2A','PKARSK2vsPP2A','PKAvsPP2A']
+
+
+for i in range(3):
+    if i == 2:    
+        simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKAvsPP2A_relFracs.npy'))
+        simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKAvsPP2A.npy'))
+    if i == 1:    
+        simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_RSK2_vsPP2A_relFracs.npy'))
+        simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_RSK2_vsPP2A.npy'))
+    if i == 0:
+        simDat_rel_fracs_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP2A_relFracs.npy'))
+        simDat_SS = np.load(os.path.join(path_simdat,'simDat_SS_PKA_PKC_vsPP2A.npy'))
+    
+    # Dose response fit to Hill equation
+    
+    PPaseV = PP2Av
+    nHs_hill = []
+    Ks_hill = []
+    
+    if i == 2: myColor = 'slateblue'; myAlpha = 0.75
+    if i == 1 or i == 4: myColor = 'pink'; myAlpha = 1
+    if i == 0: myColor = 'red'; myAlpha = 0.55
+    
+    for p in range(len(PPaseV)):
+    
+        plt.subplot(1,len(PPaseV)+1,p+1)
+            
+        for ii in range(nr_paramsets):
+            ABG_D = (simDat_SS[ii,p,:,4]+simDat_SS[ii,p,:,8])/np.sum(simDat_SS[ii,p,:,:],1)
+            plt.plot(PKAv, ABG_D, 'o', color = myColor, alpha = 0.1)
+            par_opt, _ = curve_fit(fun.hillEQ, PKAv, ABG_D, p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
+            nHs_hill.append(par_opt[0])
+            Ks_hill.append(par_opt[1])
+        plt.xscale('log')
+        if p == 1:
+            plt.xlim(5e-10,1e-6)
+        
+    nHs_hill = np.reshape(np.asarray(nHs_hill),(len(PPaseV),nr_paramsets))
+    nH_avg = np.average(nHs_hill,axis = 1)
+    nH_sd = np.std(nHs_hill,axis = 1)
+    
+    Ks_hill = np.reshape(np.asarray(Ks_hill),(len(PPaseV),nr_paramsets))
+    Ks_avg = np.average(Ks_hill,axis = 1)
+    Ks_sd = np.std(Ks_hill,axis = 1)
+    
+    # plot average fit
+    for p in range(len(PPaseV)):
+        plt.subplot(1,len(PPaseV)+1,p+1)
+        plt.plot(PKAv, fun.hillEQ(PKAv,nH_avg[p],Ks_avg[p]), '-', color = myColor, alpha=myAlpha, lw = 2.2)
+        plt.title('[PPase] (M) = '+str(PPaseV[p]),fontsize=14)
+        #if p == 0: 
+        plt.ylabel('fraction $\\alpha\\beta\\gamma$+$\\alpha\\beta\\gamma\\delta$',fontsize=15)
+        plt.xlabel('[PKA] (mol/L)',fontsize=15.5)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+    
+    
+    # nHs, nHs avg, nHs sd, EC50s, EC50 avg, EC50 sd 
+    # nHs and EC50s each of len(PPase)x NrParamsets dimension
+    doseResponses[keys[i]] = [nHs_hill,nH_avg,nH_sd,Ks_hill,Ks_avg,Ks_sd]
+
+plt.tight_layout()
+if saveFigs == True:
+    plt.savefig(os.path.join(path_figures,'hillfit_pp2a.png'),dpi=400, bbox_inches = "tight")
+    
+
+#%% Hill exponents
 
 plt.figure()
 
@@ -1305,10 +1294,10 @@ ydat_nH_err = [doseResponses['PKAvsPP1'][2],
             ]
 
 for i in range(6):
-    if i == 0 or i == 3: myColor = 'gold'
-    if i == 1 or i == 4: myColor = 'slateblue'
-    if i == 2 or i == 5: myColor = 'teal'
-    plt.bar(np.arange(3)+i*3, ydat_nH[i], yerr = ydat_nH_err[i], color=myColor, alpha =0.75)
+    if i == 0 or i == 3: myColor = 'slateblue'; myAlpha = 0.5
+    if i == 1 or i == 4: myColor = 'pink'; myAlpha = 1
+    if i == 2 or i == 5: myColor = 'red'; myAlpha = 0.7
+    plt.bar(np.arange(3)+i*3, ydat_nH[i], yerr = ydat_nH_err[i], color=myColor, alpha = myAlpha)
 
 plt.xticks(range(18), [1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6], rotation = 45)
 plt.ylim([0,3.5])
@@ -1317,6 +1306,7 @@ plt.xlabel('[Phosphatase] (mol/L)',fontsize=14.5)
 plt.ylabel('Hill exponent n$_H$',fontsize=14.5)
 
 if saveFigs == True:
+    print(os.path.join(path_figures,'hillExps.png saved'))
     plt.savefig(os.path.join(path_figures,'hillExps.png'),dpi=300, bbox_inches = "tight")
 
 
@@ -1340,10 +1330,10 @@ ydat_ECs_err = [doseResponses['PKAvsPP1'][5],
             ]
 
 for i in range(6):
-    if i == 0 or i == 3: myColor = 'gold'
-    if i == 1 or i == 4: myColor = 'slateblue'
-    if i == 2 or i == 5: myColor = 'teal'
-    plt.bar(np.arange(3)+i*3, ydat_ECs[i], yerr = ydat_ECs_err[i], color=myColor, alpha =0.75)
+    if i == 0 or i == 3: myColor = 'slateblue'; myAlpha = 0.5
+    if i == 1 or i == 4: myColor = 'pink'; myAlpha = 1
+    if i == 2 or i == 5: myColor = 'red'; myAlpha = 0.7
+    plt.bar(np.arange(3)+i*3, ydat_ECs[i], yerr = ydat_ECs_err[i], color=myColor, alpha = myAlpha)
 
 plt.xticks(range(18), [1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6], rotation = 45)
 
@@ -1357,7 +1347,7 @@ if saveFigs == True:
 
 
 
-#%% cell 10: Statistical analysis (Table S1)
+#%% cell 11: Statistical analysis (Table S1)
 
 print('########################################################')       
 print('Statistical analysis of Hill-exponents') 
