@@ -1,4 +1,4 @@
-# cMyBP-C-phosphorylation
+# cMyBP-C phosphorylation
 
 The code reproduces the simulation results and analyses from the publication:
 
