@@ -29,6 +29,7 @@ and packages were used in this study:
 - scipy v1.9.3
 - statsmodels v0.13.2
 
+Installation time depends on the users internet connectivity.
 
 Below is a short description of the directories and files:
 
@@ -84,5 +85,6 @@ Below is a short description of the directories and files:
 	simulations with the final model. The excel sheet "Parameterset_finalModel.xlsx" is a human
 	readable format with same parameter sets ordered according to their objective function value.
 
+The time required for reproducing the results on a normal desktop computer can be highly variable and ranges from several seconds for some simulations, up until several days for others. If you want to speed up some of the simulations, we recommend using an integrator from the scipy package instead (https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_ivp.html#scipy.integrate.solve_ivp).
 
 For further questions, please contact Daniel Koch (dkoch.research@protonmail.com).
