@@ -4,7 +4,7 @@ The code reproduces the simulation results and analyses from the publication:
 
 Thomas Kampourakis, Saraswathi Ponnam, Kenneth S. Campbell, Austin Wellette-Hunsucker and Daniel Koch (2024):
 The cardiac myosin binding protein-C phosphorylation state as a function of multiple protein kinase and phosphatase activities. 
-In: Nature Communications (forthcoming; an early preprint is available at bioRxiv: https://doi.org/10.1101/2023.02.24.529959)
+In: _Nature Communications_ (forthcoming; an early preprint is available at bioRxiv: https://doi.org/10.1101/2023.02.24.529959)
 
 To successfully reproduce the results you will need:
 - COPASI (http://copasi.org/)
