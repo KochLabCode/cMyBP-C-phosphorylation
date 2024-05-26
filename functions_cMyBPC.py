@@ -215,6 +215,15 @@ def intpExpDat(x, y, xnew, nReps):
 def hillEQ(x, n, K): # for fitting steady state dose response data
     y = x**n/(x**n + K**n)
     return y
+
+def mmEQ(S, Vmax, Km): # for fitting Michaelis Menten assay data
+    y = Vmax*S/(S+Km)
+    return y
+
+def bindingEQ(x,targetConc,unbound,bound,Kd): # for fitting MST binding data
+    y = unbound + ((bound-unbound)*(x+targetConc+Kd-np.sqrt((x+targetConc+Kd)**2-4*x*targetConc)))/(2*targetConc)
+    return y
+        
         
 #%% Functions for non-autonomous systems and generating time-varying signals        
         
