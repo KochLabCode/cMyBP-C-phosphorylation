@@ -35,25 +35,18 @@ Below is a short description of the directories and files:
 
 ## MAIN FOLDER:
 
-simulations.py
-Predictive simulations shown in Figure 3 and several supplementary figures.
+- simulations.py 	predictive simulations shown in Figure 3 and several supplementary figures.
 
-models_cMyBPC.py 
-Contains the ODE systems used by simulations.py
+- models_cMyBPC.py 	Contains the ODE systems used by simulations.py
 
-functions_cMyBPC.py
-Contains various functions including for numerical integration of ODE systems 
-and other functions for data analysis.
+- functions_cMyBPC.py	Contains various functions including for numerical integration of ODE systems and other functions for data analysis.
 
-model_comparisons_cMyBPC.py
-Reproduces comparison results between model simulations/fits and experimental data
+- model_comparisons_cMyBPC.py 	Reproduces comparison results between model simulations/fits and experimental data
 shown in Figures 2C and E, S2-S7, S9-S10 and S13-S15
 
-plot_experimental_data.py
-This file reproduces 1B and 3B based on the data in the subfolder "experimental data".
+- plot_experimental_data.py This file reproduces 1B and 3B based on the data in the subfolder "experimental data".
 
-FillBetween3d.py: 
-Auxilliary function for line plots with shaded error bars.
+- FillBetween3d.py	Auxilliary function for line plots with shaded error bars.
 
 
 ## SUBFOLDERS:
