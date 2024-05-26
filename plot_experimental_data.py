@@ -1,19 +1,28 @@
 # -*- coding: utf-8 -*-
 
 """
-This code generates figures 1B and 3B from the publication:
+This code generates figures 1b, 2f, 2g and 3b from the publication:
 
-Thomas Kampourakis, Saraswathi Ponnam, Daniel Koch (2023):
-The cardiac myosin binding protein-C phosphorylation state 
-as a function of multiple protein kinase and phosphatase activities 
-Preprint available under: https://doi.org/10.1101/2023.02.24.529959 
+Thomas Kampourakis, Saraswathi Ponnam, Kenneth S. Campbell, Austin Wellette-Hunsucker, 
+Daniel Koch (2024): The cardiac myosin binding protein-C phosphorylation state as a 
+function of multiple protein kinase and phosphatase activities.
+Nature Communcations (forthcoming)
 
 README:
-Before running this script, make sure that the files 'exp1_plotting.txt',
-'exp2_plotting.txt' and 'expSS_PKAvsPP1_plotting.txt' are in the subfolder
-'experimental data' relative to the directory from which this script is executed.
+    
+Before running this script, make sure that the files:
+    'exp1_plotting.txt',
+    'exp2_plotting.txt' 
+    'expSS_PKAvsPP1_plotting.txt' 
+    'SYPRO_plotting.txt'
+    'MST_unphos.txt'
+    'MST_thiophos.txt'
+    'pNPP.txt'
 
-Code by Daniel Koch, 2023
+are in the subfolder 'experimental data' relative to the directory from which this script
+is executed.
+
+Code by Daniel Koch, 2021-2024
 """
 
 #%% Import and misc settings
@@ -23,6 +32,8 @@ import sys
 #paths
 fileDirectory = os.path.dirname(os.path.abspath(__file__))   
 path_figures = os.path.join(fileDirectory, 'figures')   
+if not os.path.exists(path_figures):
+    os.makedirs(path_figures)
 path_expdat = os.path.join(fileDirectory, 'experimental data')  
 sys.path.append(fileDirectory)
 
@@ -48,8 +59,6 @@ colV = []
 for i in [0,0.3,0.5,0.6,0.8]: colV.append(cmap(i))
 xPstr = ['4P','3P','2P','1P','0P']
 
-
-
 # plotting functions
 
 def plot_TC_exp(n,ttl='',flnm=''):
@@ -68,8 +77,8 @@ def plot_TC_exp(n,ttl='',flnm=''):
            
           
     if saveFigs == True:
-        print("figure "+flnm+'.png'+" saved")
-        plt.savefig(os.path.join(path_figures, flnm+'.png'),dpi=300, bbox_inches = "tight")
+        print("figure "+flnm+'.svg'+" saved")
+        plt.savefig(os.path.join(path_figures, flnm+'.svg'), bbox_inches = "tight")
 
     plt.show()
     
@@ -160,8 +169,8 @@ plot_SS_exp(2,1,'')
 plt.plot(pka_intp, fun.hillEQ(pka_intp,np.average(nHs_hill),np.average(Ks_hill)), ':',color=colV[1], lw = 5)
 
 if saveFigs == True:
-    print("figure "+'exp_SS_PKAvsPP1'+'.png'+" saved")
-    plt.savefig(os.path.join(path_figures, 'exp_SS_PKAvsPP1'+'.png'),dpi=300, bbox_inches = "tight")
+    print("figure "+'exp_SS_PKAvsPP1'+'.svg'+" saved")
+    plt.savefig(os.path.join(path_figures, 'exp_SS_PKAvsPP1'+'.svg'), bbox_inches = "tight")
 plt.show()
 
 # plot distribution of fitted Hill-exponents
@@ -170,8 +179,8 @@ plt.plot([1,1,1], nHs_hill, 'o',color=colV[1], mec ='k', alpha = 0.5)
 plt.plot([1], np.average(nHs_hill), '_k',ms=15)
 plt.xticks([]); plt.ylim([0,3])
 plt.title('n$_H$',weight='bold',fontsize=14)
-print("figure "+'exp_SS_PKAvsPP1_inset'+'.png'+" saved")
-plt.savefig(os.path.join(path_figures, 'exp_SS_PKAvsPP1_inset'+'.png'),dpi=300, bbox_inches = "tight")
+print("figure "+'exp_SS_PKAvsPP1_inset'+'.svg'+" saved")
+plt.savefig(os.path.join(path_figures, 'exp_SS_PKAvsPP1_inset'+'.svg'), bbox_inches = "tight")
 
 
 #%% SYPRO data
@@ -189,21 +198,193 @@ for i in range(4):
 
 plt.ylabel('Normalized Fluorescence (600 nm)',fontsize=15)
 plt.xlim(0,5)
-plt.ylim(85,110)
+plt.ylim(0.9,1.125)
 plt.yticks(fontsize=13)
 ax = plt.gca()
 ax.set_xticks(np.arange(1,5))
 xlabs = ['0P','$\\alpha$','$\\alpha\\beta$','$\\alpha\\beta\\gamma$']
 ax.set_xticklabels(xlabs,rotation = 45,size=15)  
-plt.savefig(os.path.join(path_figures, 'SYPROdata.png'),dpi=400, bbox_inches = "tight")
+plt.savefig(os.path.join(path_figures, 'SYPROdata.svg'),dpi=400, bbox_inches = "tight")
 
 
 print('Analysis Sypro data')
 print('-------------------')
 pvals = []
 for i in range(3):
-    pvals.append(stats.ttest_1samp(a=SYPRO_exp[:,i+1], popmean=100)[1])
+    pvals.append(stats.ttest_ind(SYPRO_exp[:,0], SYPRO_exp[:,i+1], equal_var=True)[1])
+    # pvals.append(stats.ttest_1samp(a=SYPRO_exp[:,i+1], popmean=100)[1])
 stats_corrected = fdrcorrection(pvals)
 for i in range(3):
     print(['alpha','alpha,beta','alpha,beta,gamma'][i]+' significantly different from 0P? ', stats_corrected[0][i], ' p = ', stats_corrected[1][i])
+
+#%% MST data
+
+# paths to experimental data
+datFlNm = os.path.join(path_expdat, 'MST_unphos.txt')
+dataRaw = np.loadtxt(datFlNm,delimiter='\t',dtype=str)
+dataRaw[np.where(dataRaw == '')]=np.nan
+MST_unphos_exp = np.asarray(dataRaw[1:,:],dtype='float')
+datFlNm = os.path.join(path_expdat, 'MST_thiophos.txt')
+dataRaw = np.loadtxt(datFlNm,delimiter='\t',dtype=str)
+dataRaw[np.where(dataRaw == '')]=np.nan
+MST_thiophos_exp = np.asarray(dataRaw[1:,:],dtype='float')
+
+plt.figure(figsize=(4,4))
+for i in range(MST_unphos_exp.shape[0]-1):
+    m = MST_unphos_exp[i,1:]
+    idcs = np.where(np.invert(np.isnan(m)))[0]
+    m_n = m[idcs]
+    plt.errorbar(MST_unphos_exp[i,0]*1e-6, np.mean(m_n),yerr=np.std(m_n)/np.sqrt(len(m_n)),fmt='o',color=colV[4])
+    
+for i in range(MST_thiophos_exp.shape[0]-1):
+    m = MST_thiophos_exp[i,1:]
+    idcs = np.where(np.invert(np.isnan(m)))[0]
+    m_n = m[idcs]
+    plt.errorbar(MST_thiophos_exp[i,0]*1e-6, np.mean(m_n),yerr=np.std(m_n)/np.sqrt(len(m_n)),fmt='o',color=colV[0])
+    
+par_unphos = []
+par_thiophos = []
+
+# fit
+for i in range(MST_unphos_exp.shape[1]-1):
+
+    m = MST_unphos_exp[:,i+1]
+    idcs = np.where(np.invert(np.isnan(m)))[0]
+    m_n = m[idcs]
+    ligand = MST_unphos_exp[idcs,0]*1e-6
+    
+    par_opt, _ = curve_fit(fun.bindingEQ, ligand, m_n, p0 = [0.05*1e-6, 0.5, 0.5, 1e-6], bounds=([0.049*1e-6,0,0,0.01*1e-6],[0.05*1e-6,1,1,10*1e-6]))
+    par_unphos.append(par_opt[:])
+
+for i in range(MST_thiophos_exp.shape[1]-1):
+
+    m = MST_thiophos_exp[:,i+1]
+    idcs = np.where(np.invert(np.isnan(m)))[0]
+    m_n = m[idcs]
+    ligand = MST_thiophos_exp[idcs,0]*1e-6
+    
+    par_opt, _ = curve_fit(fun.bindingEQ, ligand, m_n, p0 = [0.05*1e-6, 0.5, 0.5, 1e-6], bounds=([0.049*1e-6,0,0,0.01*1e-6],[0.05*1e-6,1,1,10*1e-6]))
+    par_thiophos.append(par_opt[:])
+
+par_unphos = np.asarray(par_unphos)
+par_thiophos = np.asarray(par_thiophos)
+par_unphos_mean = np.mean(par_unphos,axis=0)
+par_thiophos_mean = np.mean(par_thiophos,axis=0)
+
+x = np.logspace(-2,2,100)*1e-6
+plt.plot(x, fun.bindingEQ(x,par_unphos_mean[0],par_unphos_mean[1],par_unphos_mean[2],par_unphos_mean[3]),'-',color=colV[4],label='unphosphorylated')
+plt.plot(x, fun.bindingEQ(x,par_thiophos_mean[0],par_thiophos_mean[1],par_thiophos_mean[2],par_thiophos_mean[3]),'-',color=colV[0],label='thiophosphorylated')
+
+plt.xscale('log')
+plt.xlim(0.01*1e-6, 20*1e-6)
+plt.ylabel('fraction bound',fontsize=15)
+plt.xlabel('[cMyBP-C] (mol/L)',fontsize=15)
+plt.yticks(fontsize=13)
+plt.xticks(fontsize=13)
+plt.legend(fontsize=13)
+
+if saveFigs == True:
+    print("figure "+'exp_MST'+'.svg'+" saved")
+    plt.savefig(os.path.join(path_figures, 'exp_MST'+'.svg'), bbox_inches = "tight")
+
+plt.figure(figsize=(0.8,1.8))
+plt.bar([0,1], 
+        [par_unphos_mean[3],par_thiophos_mean[3]], 
+        yerr =  [np.std(par_unphos[:,3])/np.sqrt(len(par_unphos[:,3])),np.std(par_thiophos[:,3])/np.sqrt(len(par_thiophos[:,3]))],
+        color=[colV[4],colV[0]],alpha = 0.6)
+
+plt.plot(np.zeros(len(par_unphos[:,3])),par_unphos[:,3],'o',color=colV[4])
+plt.plot(np.ones(len(par_thiophos[:,3])),par_thiophos[:,3],'o',color=colV[0])
+plt.ylim(0,1.65e-6)
+plt.ylabel('$K_d$ (mol/L)',fontsize=15)
+plt.xticks([])
+
+if saveFigs == True:
+    print("figure "+'exp_MST_inset'+'.svg'+" saved")
+    plt.savefig(os.path.join(path_figures, 'exp_MST_inset'+'.svg'), bbox_inches = "tight")
+
+# T-test
+print('Kd of thiophosphorylated lower than unphosphorylated? p=',stats.ttest_ind(par_unphos[:,3],par_thiophos[:,3],alternative='greater',equal_var=False)[1])
+
+
+#%% pNPP data
+
+# paths to experimental data
+datFlNm = os.path.join(path_expdat, 'pNPP.txt')
+dataRaw = np.loadtxt(datFlNm,delimiter='\t',dtype=str)
+pNPP_exp = np.flipud(np.asarray(dataRaw[1:,:],dtype='float'))
+
+
+# fit
+par_MM_pp1 = []
+par_MM_pp1_c1mc2  = []
+par_MM_pp1_tpc1mc2 = []
+
+pNPP_pp1 = pNPP_exp[:pNPP_exp.shape[0]-1,1:4]
+pNPP_pp1_c1mc2 = pNPP_exp[:pNPP_exp.shape[0]-1,4:7]
+pNPP_pp1_tpc1mc2 = pNPP_exp[:pNPP_exp.shape[0]-1,7:]
+substrate = pNPP_exp[:pNPP_exp.shape[0]-1,0]*1e-3
+
+for i in range(3):
+    par_opt, _ = curve_fit(fun.mmEQ, substrate, pNPP_pp1[:,i], p0 = [0.005,20e-3], bounds=([0,0],[1,1]))
+    par_MM_pp1.append(par_opt[:])
+    par_opt, _ = curve_fit(fun.mmEQ, substrate, pNPP_pp1_c1mc2[:,i], p0 = [0.005,20e-3], bounds=([0,0],[1,1]))
+    par_MM_pp1_c1mc2.append(par_opt[:])
+    par_opt, _ = curve_fit(fun.mmEQ, substrate, pNPP_pp1_tpc1mc2[:,i], p0 = [0.005,20e-3], bounds=([0,0],[1,1]))
+    par_MM_pp1_tpc1mc2.append(par_opt[:])
+    
+par_MM_pp1 = np.asarray(par_MM_pp1)    
+par_MM_pp1_c1mc2 = np.asarray(par_MM_pp1_c1mc2)
+par_MM_pp1_tpc1mc2 = np.asarray(par_MM_pp1_tpc1mc2)
+ 
+plt.figure()
+plt.subplot(1,2,1)
+plt.title('Vmax')
+plt.scatter(1*np.ones(3),par_MM_pp1[:,0],label='PP1 only')
+plt.scatter(2*np.ones(3),par_MM_pp1_c1mc2[:,0],label='PP1 + C1mC1')
+plt.scatter(3*np.ones(3),par_MM_pp1_tpc1mc2[:,0],label='PP1 + thiophos. C1mC2')
+plt.xticks([])
+plt.legend()
+plt.subplot(1,2,2)
+plt.title('Km')
+plt.scatter(1*np.ones(3),par_MM_pp1[:,1],label='PP1 only')
+plt.scatter(2*np.ones(3),par_MM_pp1_c1mc2[:,1],label='PP1 + C1mC1')
+plt.scatter(3*np.ones(3),par_MM_pp1_tpc1mc2[:,1],label='PP1 + thiophos. C1mC2')
+plt.xticks([])
+plt.legend()
+plt.tight_layout()
+
+anova_Vmax = stats.f_oneway(par_MM_pp1[:,0],par_MM_pp1_c1mc2[:,0],par_MM_pp1_tpc1mc2[:,0])[1]
+anova_Km = stats.f_oneway(par_MM_pp1[:,1],par_MM_pp1_c1mc2[:,1],par_MM_pp1_tpc1mc2[:,1])[1]
+
+print('Vmax/Km of pNPP assay different between conditions? p = '+str(anova_Vmax)+'/'+str(anova_Km))
+
+# plot
+
+plt.figure(figsize=(4,4))
+for i in range(pNPP_exp.shape[0]-1):
+    pNPP_pp1 = pNPP_exp[i,1:4]
+    pNPP_pp1_c1mc2 = pNPP_exp[i,4:7]
+    pNPP_pp1_tpc1mc2 = pNPP_exp[i,7:]
+    plt.errorbar(pNPP_exp[i,0]*1e-3, np.mean(pNPP_pp1),yerr=np.std(pNPP_pp1)/np.sqrt(len(pNPP_pp1)),fmt='o',color='teal')
+    plt.errorbar(pNPP_exp[i,0]*1e-3, np.mean(pNPP_pp1_c1mc2),yerr=np.std(pNPP_pp1_c1mc2)/np.sqrt(len(pNPP_pp1_c1mc2)),fmt='o',color=colV[4])
+    plt.errorbar(pNPP_exp[i,0]*1e-3, np.mean(pNPP_pp1_tpc1mc2),yerr=np.std(pNPP_pp1_tpc1mc2)/np.sqrt(len(pNPP_pp1_tpc1mc2)),fmt='o',color=colV[0])
+    
+
+x = np.linspace(0,0.045,100)
+plt.plot(x, fun.mmEQ(x,np.mean(par_MM_pp1[:,0]),np.mean(par_MM_pp1[:,1])),'-',color='teal',label='PP1')
+plt.plot(x, fun.mmEQ(x,np.mean(par_MM_pp1_c1mc2[:,0]),np.mean(par_MM_pp1_c1mc2[:,1])),'-',color=colV[4],label='PP1 + C1mC2 (unphos.)')
+plt.plot(x, fun.mmEQ(x,np.mean(par_MM_pp1_tpc1mc2[:,0]),np.mean(par_MM_pp1_tpc1mc2[:,1])),'-',color=colV[0],label='PP1 + C1mC2 (thiophos.)')
+          
+plt.ylabel('rate (a.u.)',fontsize=15)
+plt.xlabel('[pNPP] (mol/L)',fontsize=15)
+plt.yticks(fontsize=13)
+plt.xticks(fontsize=13)
+plt.legend(fontsize=13)    
+
+if saveFigs == True:
+    print("figure "+'exp_pNPP'+'.svg'+" saved")
+    plt.savefig(os.path.join(path_figures, 'exp_pNPP'+'.svg'), bbox_inches = "tight")
+
+
 

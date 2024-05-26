@@ -2,10 +2,10 @@
 """
 This code reproduces the simulation results of the paper:
 
-Thomas Kampourakis, Saraswathi Ponnam, Daniel Koch (2023):
-The cardiac myosin binding protein-C phosphorylation state 
-as a function of multiple protein kinase and phosphatase activities 
-Preprint available under: https://doi.org/10.1101/2023.02.24.529959 
+Thomas Kampourakis, Saraswathi Ponnam, Kenneth S. Campbell, Austin Wellette-Hunsucker, 
+Daniel Koch (2024): The cardiac myosin binding protein-C phosphorylation state as a 
+function of multiple protein kinase and phosphatase activities.
+Nature Communcations (forthcoming)
 
 ----------------NOTE----------------
 
@@ -22,23 +22,24 @@ cell 1: Miscellaneous settings
 cell 2: Function definitions
 
  ==~~==~~==~~== SIMULATIONS ==~~==~~==~~==~~==~~==~~==~    
-cell 3: Timecourses single pulses PKA vs PP1/PP2A (Figure S21)
-cell 4: Steady state PKA vs PP1/PP2A (Figure 3A,E S19)
-cell 5: Steady state RSK2 vs PP1/PP2A (Figure S18)
-cell 6: Steady state PKA vs PP1/PP2A in presence of RSK2 (Figure 3C,E S19)
-cell 7: Steady state PKC vs PP1/PP2A (Figure S18)
-cell 8: Steady state PKA vs PP1/PP2A in presence of PKC (Figure 3C,D,E)
+cell 3: Timecourses single pulses PKA vs PP1/PP2A (not in manuscript)
+cell 4: Steady state PKA vs PP1/PP2A (Figure 3a,e Supplementary Figure 19, 21)
+cell 5: Steady state RSK2 vs PP1/PP2A (Supplementary Figure 20)
+cell 6: Steady state PKA vs PP1/PP2A in presence of RSK2 (Figure 3c,e, Supplementary Figure 21)
+cell 7: Steady state PKC vs PP1/PP2A (Supplementary Figure 20)
+cell 8: Steady state PKA vs PP1/PP2A in presence of PKC (Figure 3c,d,e, Supplementary Figure 22)
+cell 9: Steady state PKA vs PP1 with PP2A parameters for v26 in presence of PKC (Figure 3h)
 
-(For reproducing Figure 3E, cells 4, 6 and 8 need to be run subsequently)
+(For reproducing Figure 3e, cells 4, 6 and 8 need to be run subsequently)
 
 
 ==~~==~~==~~== DATA ANALYSIS ==~~==~~==~~==~~==~~==~~==~
-(only execute after running and saving data from cells 4-8)
-cell 10: Plot dose response comparisons of fitted Hill parameters (Figure 3F and 3H)
-cell 11: Statistical analysis (Table S1)
+(only execute after running and saving data from cells 4,6,8)
+cell 10: Plot dose response comparisons of fitted Hill parameters (Figure 3f)
+cell 11: Statistical analysis (Supplementary Table 1)
 
 
-Code by Daniel Koch, 2021-2023
+Code by Daniel Koch, 2021-2024
 """
 
 #%% cell 0: Import packages and modules, define paths
@@ -48,8 +49,13 @@ import sys
 #paths
 fileDirectory = os.path.dirname(os.path.abspath(__file__))
 path_paramsets = os.path.join(fileDirectory, 'parametersets')   
-path_simdat = os.path.join(fileDirectory, 'simulation data')   
+path_simdat = os.path.join(fileDirectory, 'simulation data') 
+if not os.path.exists(path_simdat):
+    os.makedirs(path_simdat) 
 path_figures = os.path.join(fileDirectory, 'figures\\simulations')   
+if not os.path.exists(path_figures):
+    os.makedirs(path_figures)
+     
 sys.path.append(fileDirectory)
 
 import models_cMyBPC as mod 
@@ -58,6 +64,7 @@ import functions_cMyBPC as fun
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from scipy.integrate import solve_ivp 
 from scipy.optimize import curve_fit
 from statsmodels.stats.multitest import fdrcorrection
 import warnings
@@ -69,8 +76,8 @@ from matplotlib import cm
 warnings.filterwarnings("error")
 plt.rcParams.update({'font.family':'Arial'})
 
-saveFigs = False # saves figures as files
-loadData = False #  loads result from previous simulations if available 
+saveFigs = True # saves figures as files
+loadData = True #  loads result from previous simulations if available 
 saveData = False #  save result from simulations (only if loadData = True)
 plotFigures = True # plot results from simulations
 printSimProg = True # print simulation progress to console
@@ -196,7 +203,8 @@ def plot_SS_3D(kinase_name, kinase_vector, PPase_name,PPase_vector,xtick_array =
         # ax.set_zticklabels([0,0.2,0.4,0.6,0.8,1],fontsize=14)
      
         ax.grid(False)
-        
+     
+      
 def plot_SS_3D_noD(kinase_name, kinase_vector, PPase_name,PPase_vector,xtick_array = np.array([1e-11,1e-10,1e-9,1e-8,1e-7,1e-6,1e-5])):
     
     fig = plt.figure(figsize=(7.5,7.5))
@@ -246,7 +254,6 @@ def plot_SS_3D_noD(kinase_name, kinase_vector, PPase_name,PPase_vector,xtick_arr
         
         ax.set_zlim([0,1])
         ax.set_zlabel('\n fraction',fontsize=16)
-        # ax.set_zticklabels([0,0.2,0.4,0.6,0.8,1],fontsize=14)
         ax.zaxis.set_tick_params(labelsize=14)
      
         ax.grid(False)
@@ -288,7 +295,7 @@ def run_simulation(ICs,params,t0,t_end,h,naFun,naFunParams,model = mod.cMyBPC_mo
 # Timecourse simulations
 #%% #########################################################
 
-# %% cell 3: Timecourses single pulses PKA vs PP1/PP2A (Figure S21)
+# %% cell 3: Timecourses single pulses PKA vs PP1/PP2A (Not in manuscript)
 
 # Time setting for simulations
 t0 = 0
@@ -361,7 +368,7 @@ for l in range(2):
         plt.xticks([])
         
         if saveFigs == True:
-            plt.savefig(os.path.join(path_figures,'tc_PKA_PKC_PP1_PP2A_'+str(c_enzymes[ii])+'.png'),dpi=300, bbox_inches = "tight")
+            plt.savefig(os.path.join(path_figures,'tc_PKA_PKC_PP1_PP2A_'+str(c_enzymes[ii])+'.svg'), bbox_inches = "tight")
         plt.show()    
             
         plt.figure(figsize=(4,1.25))
@@ -373,7 +380,7 @@ for l in range(2):
         plt.ylim([0,1.1e-7])
         
         if saveFigs == True:
-            plt.savefig(os.path.join(path_figures,'tc_PKA_PKC_PP1_PP2A_'+str(c_enzymes[ii])+'_input.png'),dpi=300, bbox_inches = "tight")
+            plt.savefig(os.path.join(path_figures,'tc_PKA_PKC_PP1_PP2A_'+str(c_enzymes[ii])+'_input.svg'), bbox_inches = "tight")
         plt.show()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -386,7 +393,7 @@ for l in range(2):
 # Steady state dose response simulations
 #%% #########################################################
 
-#%% cell 4: Steady state PKA vs PP1/PP2A (Figure 3A, S19)
+#%% cell 4: Steady state PKA vs PP1/PP2A (Figure 3a,e Supplementary Figure 19, 21)
 
 PP1v = np.array([1e-8,1e-7,1e-6])
 PKAv = np.logspace(-11,-5, num=21)
@@ -394,7 +401,7 @@ PKAv = PKAv[np.where(PKAv<=6e-6)]
 
 # Time setting for simulations
 t0 = 0
-t_end = 5*60*60 #h/min/s
+t_end = 10*60*60 #h/min/s
 h = 1
 npts = int(t_end/h)
 time = np.linspace(t0,t_end,npts+1)        
@@ -416,13 +423,16 @@ if loadData == False:
                 for jj in PKAv:
                     
                     # parameters
-                    c_enzymes = np.array([jj,0,j,0]) #PKA, PKC, PP1, PP2A
+                    c_enzymes = np.array([jj,0,j,0,0]) #PKA, PKC, PP1, PP2A, RSK2
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
                     additionalParams = paramsHJ[p,62:]
-                    params = [k,K,additionalParams,c_enzymes]
+                    params = [k,K,additionalParams,c_enzymes,paramsRSK2]
+     
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses)
+                    output = solution.y
                         
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
@@ -447,9 +457,7 @@ else:
 plot_SS_3D('PKA',PKAv,'PP1', PP1v)
 
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKAvsPP1.png'),dpi=300, bbox_inches = "tight")
-
-
+    plt.savefig(os.path.join(path_figures,'SS_PKAvsPP1.svg'), bbox_inches = "tight")
 #=====================================================
     
 # PKA vs PP2A
@@ -471,13 +479,17 @@ if loadData == False:
                 for jj in PKAv:
                     
                     # parameters
-                    c_enzymes = np.array([jj,0,0,j]) #PKA, PKC, PP1, PP2A
+                    c_enzymes = np.array([jj,0,0,j,0]) #PKA, PKC, PP1, PP2A
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
-                    additionalParams = paramsHJ[p,62:]
-                    params = [k,K,additionalParams,c_enzymes]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses)
+                    additionalParams = paramsHJ[p,62:]
+                    params = [k,K,additionalParams,c_enzymes,paramsRSK2]
+                    
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
                         
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
@@ -501,14 +513,179 @@ else:
 plot_SS_3D('PKA',PKAv,'PP2A', PP2Av)
 
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKAvsPP2A.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKAvsPP2A.svg'), bbox_inches = "tight")
+plt.show()
 
+#=================== Comparison experiment (Supplementary Figure 19) ==================================
+
+path_expdat = os.path.join(fileDirectory, 'experimental data')  
+sys.path.append(fileDirectory)
+
+# plotting functions
+
+def plot_SS_exp(n,figNr = 1, ttl='',flnm=''):
+    for i in range(1,5): #3:0P, 2:1P, 1: 2P, 0:3P4P
+        
+        plt.plot(np.asarray(pka_intp),expDat_interpol[n][i-1,:],'-',color=colV[i],lw=2.5)
+        means = np.mean(expDat[n][:,(i-1)*expReps[n]:(i-1)*expReps[n]+expReps[n]],1)
+        SDs = np.std(expDat[n][:,(i-1)*expReps[n]:(i-1)*expReps[n]+expReps[n]],1) 
+        plt.errorbar(pka_exp,means,yerr=SDs,fmt='o', mfc=colV[i], ecolor = 'k', mec ='k', capsize = 5, ms=9, label = '')
+        plt.ylabel("fraction",fontsize=17)
+        plt.ylim(0,1)
+        plt.yticks([0,0.25,0.5,0.75,1],fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.xlabel("[PKA] (mol/L)",fontsize=17.5)
+        plt.xscale('log')
+
+
+# paths to experimental data
+datFlNm = [
+    os.path.join(path_expdat, 'expSS_PKAvsPP1_plotting.txt'), # PKA vs PP1  
+    ]
+
+expNames = ['SS_PKAvsPP1']
+expReps = [3]
+
+expDat = []   
+expDat_interpol = []
+
+# define PKA concentrations for which to interpolate experimental dose response data
+dataRaw = np.loadtxt(datFlNm[0],delimiter='\t',dtype=str)
+pka_exp = np.asarray(dataRaw[1:,0],dtype='float')
+pka_intp = np.geomspace(3.125e-9,8e-7,num=100,endpoint=True)
+pka_intp = np.append(pka_intp,pka_exp)
+pka_intp = np.unique(pka_intp)
+pka_intp = np.sort(pka_intp)
+
+# load and interpolate experimental data
+
+for n in range(len(datFlNm)):
+    dataRaw = np.loadtxt(datFlNm[n],delimiter='\t',dtype=str)
+    dataClean = np.asarray(dataRaw[1:,1:],dtype='float')
+
+    pka_exp = np.asarray(dataRaw[1:,0],dtype='float')
+    intpDat = fun.intpExpDat(pka_exp,dataClean,pka_intp,expReps[n])
+    
+    expDat.append(dataClean)
+    expDat_interpol.append(intpDat)
+    
+
+# plot and analyse experimental SS data (Figure 3B)
+
+plt.figure(1,figsize=(4.1,3.5))
+
+nHs_hill = []
+Ks_hill = []
+
+# fit experimental data to Hill-equation
+for i in range(3):
+    expDat[n][:,(i-1)*expReps[n]:(i-1)*expReps[n]+expReps[n]]
+    par_opt, _ = curve_fit(fun.hillEQ, pka_exp, expDat[0][:,i], p0 = [1, 1e-9], bounds=(0,[10,1e-3]))
+    nHs_hill.append(par_opt[0])
+    Ks_hill.append(par_opt[1])
+    plt.xscale('log')
+        
+# plot experimental and interpolated data 
+plot_SS_exp(0,1,'')
+
+# PKA vs PP1 - comparison to data
+
+PP1v = np.array([5e-7])
+PKAv = np.logspace(-11,-5, num=21)
+PKAv = PKAv[np.where(PKAv<=6e-6)]
+# Time setting for simulations
+t0 = 0
+t_end = 1*60*60 #h/min/s
+h = 1
+npts = int(t_end/h)
+time = np.linspace(t0,t_end,npts+1)        
+
+
+# Initial conditions
+ICs = np.zeros(9)    #P0,A,Atr,AB,ABG,D,AD,ABD,ABGD
+ICs[0] = 20e-6      #0P cMyBP-C  
+
+signalPulses = [0, t_end+1]
+simDat_SS = []      
+simDat_rel_fracs_SS = []
+
+
+bAct_PKA = 1 #activity of PKA batch
+bAct_PP1 = 1 #activity of PKA batch
+
+# bAct_PKA = 0.03 #activity of PKA batch
+# bAct_PP1 = 0.038 #activity of PKA batch
+
+for p in range(nr_paramsets):#
+    if printSimProg == True:
+        print('simulation for parameterset '+str(p+1)+'/'+str(nr_paramsets))
+    for j in PP1v:
+        for jj in PKAv:
+            c_enzymes = np.array([jj*bAct_PKA,0,j*bAct_PP1,0,0]) #PKA, PKC, PP1, PP2A, RSK2
+            k = paramsHJ[p,2:32]
+            K = paramsHJ[p,32:62]
+            
+            additionalParams = paramsHJ[p,62:]
+            params = [k,K,additionalParams,c_enzymes,paramsRSK2]
+            
+            solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                  t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+            
+            output = solution.y
+            
+            simDat_SS.append(output[:,t_end])
+            simDat_rel_fracs_SS.append([
+                fun.fraction(output,'4P',4)[t_end],
+                fun.fraction(output,'3P',4)[t_end],
+                fun.fraction(output,'2P',4)[t_end],
+                fun.fraction(output,'1P',4)[t_end],
+                fun.fraction(output,'0P',4)[t_end],
+                ])
+    
+simDat_SS = np.reshape(simDat_SS, (nr_paramsets,len(PP1v),len(PKAv),9))        
+simDat_rel_fracs_SS = np.reshape(simDat_rel_fracs_SS, (nr_paramsets,len(PP1v),len(PKAv),5))
+
+
+avg_0P = np.average(simDat_rel_fracs_SS[:,0,:,4], axis = 0)
+avg_1P = np.average(simDat_rel_fracs_SS[:,0,:,3], axis = 0)
+avg_2P = np.average(simDat_rel_fracs_SS[:,0,:,2], axis = 0)
+avg_3P = np.average(simDat_rel_fracs_SS[:,0,:,1], axis = 0)
+avg_4P = np.average(simDat_rel_fracs_SS[:,0,:,0], axis = 0)
+
+
+# np.std(simDat_rel_fracs_SS[:,0,:,4], axis = 0)
+sd_0P = np.std(simDat_rel_fracs_SS[:,0,:,4], axis = 0)
+sd_1P = np.std(simDat_rel_fracs_SS[:,0,:,3], axis = 0)
+sd_2P = np.std(simDat_rel_fracs_SS[:,0,:,2], axis = 0)
+sd_3P = np.std(simDat_rel_fracs_SS[:,0,:,1], axis = 0)
+sd_4P = np.std(simDat_rel_fracs_SS[:,0,:,0], axis = 0)
+
+# plot averages
+                    
+plt.plot(PKAv,avg_0P,':',color=c0P, alpha=0.4, lw=2.75 ,label='0P')
+plt.fill_between(PKAv,avg_0P-1*sd_0P,avg_0P+1*sd_0P,color=c0P, alpha=0.2, lw=0.1)
+
+plt.plot(PKAv,avg_1P,':',color=c1P, alpha=0.4, lw=2.75,label='1P')
+plt.fill_between(PKAv,avg_1P-1*sd_1P,avg_1P+1*sd_1P,color=c1P, alpha=0.2, lw=0.1)
+
+plt.plot(PKAv,avg_2P,':',color=c2P, alpha=0.4, lw=2.75,label='2P')
+plt.fill_between(PKAv,avg_2P-1*sd_2P,avg_2P+1*sd_2P,color=c2P, alpha=0.2, lw=0.1)
+
+plt.plot(PKAv,avg_3P,':',color=c3P, alpha=0.4, lw=2.75,label='3P')
+plt.fill_between(PKAv,avg_3P-1*sd_3P,avg_3P+1*sd_3P,color=c3P, alpha=0.2, lw=0.1)
+
+plt.plot(PKAv,avg_4P,':',color=c4P, alpha=0.4, lw=2.75,label='4P')
+plt.fill_between(PKAv,avg_4P-1*sd_4P,avg_4P+1*sd_4P,color=c4P, alpha=0.2, lw=0.1)
+
+plt.legend()
+
+plt.xlim(3.125e-9,1.05e-6)
 
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-#%% cell 5: Steady state RSK2 vs PP1/PP2A (Figure S18)
+#%% cell 5: Steady state RSK2 vs PP1/PP2A (Supplementary Figure 20)
 
 PP1v = np.array([1e-8,1e-7,1e-6])
 RSK2v = np.logspace(-12,-6, num=20)
@@ -520,7 +697,6 @@ t_end = 10*60*60 #h/min/s
 h = 1
 npts = int(t_end/h)
 time = np.linspace(t0,t_end,npts+1)        
-
 
 # Initial conditions
 ICs = np.zeros(9)    #P0,A,Atr,AB,ABG,D,AD,ABD,ABGD
@@ -541,11 +717,15 @@ if loadData == False:
                     c_enzymes = np.array([0,0,j,0,jj]) #PKA, PKC, PP1, PP2A
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -569,7 +749,7 @@ else:
 plot_SS_3D('RSK2',RSK2v,'PP1', PP1v, np.array([1e-12,1e-11,1e-10,1e-9,1e-8,1e-7,1e-6]))
 
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_RSK2vsPP1.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_RSK2vsPP1.svg'), bbox_inches = "tight")
 
 #====================================================================
 
@@ -606,11 +786,15 @@ if loadData == False:
                     c_enzymes = np.array([0,0,j,0,jj]) #PKA, PKC, PP2A, PP2A
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -633,14 +817,14 @@ else:
 
 plot_SS_3D('RSK2',RSK2v,'PP2A', PP2Av, np.array([1e-12,1e-11,1e-10,1e-9,1e-8,1e-7,1e-6]))
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_RSK2vsPP2A.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_RSK2vsPP2A.svg'), bbox_inches = "tight")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
-#%% cell 6: Steady state PKA vs PP1/PP2A in presence of RSK2 (Figure 3C, S19)
+#%% cell 6: Steady state PKA vs PP1/PP2A in presence of RSK2 (Figure 3c,e, Supplementary Figure 21)
 
 PP1v = np.array([1e-8,1e-7,1e-6])
 PKAv = np.logspace(-11,-5, num=21)
@@ -648,7 +832,7 @@ PKAv = PKAv[np.where(PKAv<=6e-6)]
 
 # Time setting for simulations
 t0 = 0
-t_end = 5*60*60 #h/min/s
+t_end = 10*60*60 #h/min/s
 h = 1
 npts = int(t_end/h)
 time = np.linspace(t0,t_end,npts+1)        
@@ -673,11 +857,15 @@ if loadData == False:
                     c_enzymes = np.array([jj,0,j,0,1e-7]) #PKA, PKC, PP1, PP2A, RSK2
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -700,8 +888,8 @@ else:
 
 plot_SS_3D('PKA',PKAv,'PP1', PP1v)
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+RSK2vsPP1.png'),dpi=300, bbox_inches = "tight")
-
+    plt.savefig(os.path.join(path_figures,'SS_PKA+RSK2vsPP1.svg'), bbox_inches = "tight")
+    
 # PKA vs PP2A
 
 PP2Av = np.array([1e-8,1e-7,1e-6])
@@ -724,11 +912,15 @@ if loadData == False:
                     c_enzymes = np.array([jj,0,0,j,1e-7]) #PKA, PKC, PP1, PP2A, RSK2
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -750,11 +942,12 @@ else:
 
 plot_SS_3D('PKA',PKAv,'PP2A', PP2Av)
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+RSK2vsPP2A.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+RSK2vsPP2A.svg'), bbox_inches = "tight")
+
 
 
     
-#%% cell 7: Steady state PKC vs PP1/PP2A (Figure S18)
+#%% cell 7: Steady state PKC vs PP1/PP2A (Supplementary Figure 20)
 
 PP1v = np.array([1e-8,1e-7,1e-6])
 PKCv = np.logspace(-10,-5, num=20)
@@ -787,11 +980,15 @@ if loadData == False:
                     c_enzymes = np.array([0,jj,j,0,0]) #PKA, PKC, PP1, PP2A
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -815,7 +1012,7 @@ else:
 plot_SS_3D('PKC',PKCv,'PP1', PP1v, np.array([1e-10,1e-9,1e-8,1e-7,1e-6,1e-5]))
 
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKCvsPP1.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKCvsPP1.svg'), bbox_inches = "tight")
 
  
 #====================================================================
@@ -850,11 +1047,15 @@ if loadData == False:
                     c_enzymes = np.array([0,jj,j,0,0]) #PKA, PKC, PP2A, PP2A
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -877,14 +1078,14 @@ else:
 
 plot_SS_3D('PKC',PKCv,'PP2A', PP2Av, np.array([1e-10,1e-9,1e-8,1e-7,1e-6,1e-5]))
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKCvsPP2A.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKCvsPP2A.svg'), bbox_inches = "tight")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#%% cell 8: Steady state PKA vs PP1/PP2A in presence of PKC (Figure 3C, D)
+#%% cell 8: Steady state PKA vs PP1/PP2A in presence of PKC (Figure 3c,d,e, Supplementary Figure 22)
 
 PP1v = np.array([1e-8,1e-7,1e-6])
 PKAv = np.logspace(-11,-5, num=21)
@@ -892,7 +1093,7 @@ PKAv = PKAv[np.where(PKAv<=6e-6)]
 
 # Time setting for simulations
 t0 = 0
-t_end = 5*60*60 #h/min/s
+t_end = 10*60*60 #h/min/s
 h = 1
 npts = int(t_end/h)
 time = np.linspace(t0,t_end,npts+1)        
@@ -912,16 +1113,20 @@ if loadData == False:
                 print('simulation for parameterset '+str(p+1)+'/'+str(nr_paramsets))
             for j in PP1v:
                 for jj in PKAv:
-                    print(jj)
+                    
                     # parameters
                     c_enzymes = np.array([jj,1e-7,j,0,0]) #PKA, PKC, PP1, PP2A, RSK2
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -944,12 +1149,14 @@ else:
 
 plot_SS_3D('PKA', PKAv,'PP1', PP1v)
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1.svg'), bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1.svg'), bbox_inches = "tight")
+
 
 
 plot_SS_3D_noD('PKA', PKAv,'PP1', PP1v)
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1_lumped.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1_lumped.svg'), bbox_inches = "tight")
 
 #=====================================================
 
@@ -975,11 +1182,15 @@ if loadData == False:
                     c_enzymes = np.array([jj,1e-7,0,j,0]) #PKA, PKC, PP1, PP2A, RSK2
                     k = paramsHJ[p,2:32]
                     K = paramsHJ[p,32:62]
+                    
                     additionalParams = paramsHJ[p,62:]
                     params = [k,K,additionalParams,c_enzymes,paramsRSK2]
                     
-                    output = run_simulation(ICs,params,t0,t_end,h,fun.fromIntv,signalPulses,mod.cMyBPC_model_final_RSK2)
-                        
+                    solution = solve_ivp(mod.cMyBPC_model_final_RSK2, (t0, t_end), ICs, rtol=1.e-8, atol=1.e-8,
+                                          t_eval=time, args=(params,fun.fromIntv,signalPulses), method='LSODA')  #RK45, RK23, BDF, LSODA, Radau, DOP853
+                    
+                    output = solution.y
+                    
                     simDat_SS.append(output[:,t_end])
                     simDat_rel_fracs_SS.append([
                         fun.fraction(output,'4P',4)[t_end],
@@ -1001,20 +1212,18 @@ else:
 
 plot_SS_3D('PKA',PKAv,'PP2A', PP2Av)
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP2A.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP2A.svg'), bbox_inches = "tight")
 
 plot_SS_3D_noD('PKA',PKAv,'PP2A', PP2Av)
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP2A_lumped.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP2A_lumped.svg'), bbox_inches = "tight")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#%% cell 9: Steady state PKA vs PP1 with PP2A parameters for v26 in presence of PKC (Figure 3H)
-
-from scipy.integrate import solve_ivp 
+#%% cell 9: Steady state PKA vs PP1 with PP2A parameters for v26 in presence of PKC (Figure 3h)
 
 # Load fitted parametersets for PKA, PP1, PP2A
 paramsHJ = np.load(os.path.join(path_paramsets,'paramset_final.npy'))
@@ -1105,7 +1314,7 @@ plot_SS_3D('PKA', PKAv,'PP1', PP1v)
 
 
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1pp2ified.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'SS_PKA+PKCvsPP1pp2ified.svg'), bbox_inches = "tight")
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1115,14 +1324,12 @@ if saveFigs == True:
 
 #%% ==~~==~~==~~== DATA ANALYSIS ==~~==~~==~~==~~==~~==~~==~
 
-#%% cell 10: Plot dose response comparisons of fitted Hill parameters (Figure 3F)
+#%% cell 10: Plot dose response comparisons of fitted Hill parameters (Figure 3f)
 
 # Dictionary to which fitted dose-response parameters will be added
 # for statistical analysis. Each entry will be a list consisting of
 # nH values, nHs avg, nHs sd, EC50 values, EC50 avg, EC50 sd
 doseResponses = {} 
-
-
 
 # Hill fits PP1
 
@@ -1196,7 +1403,7 @@ for i in range(3):
 
 plt.tight_layout()
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'hillfit_pp1.png'),dpi=400, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'hillfit_pp1.svg'), bbox_inches = "tight")
     
 
 # Hill fits PP2A
@@ -1271,7 +1478,7 @@ for i in range(3):
 
 plt.tight_layout()
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'hillfit_pp2a.png'),dpi=400, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'hillfit_pp2a.svg'), bbox_inches = "tight")
     
 
 #%% Hill exponents
@@ -1293,12 +1500,22 @@ ydat_nH_err = [doseResponses['PKAvsPP1'][2],
             doseResponses['PKAPKCvsPP2A'][2]
             ]
 
+ydat_nH_all = [doseResponses['PKAvsPP1'][0],
+            doseResponses['PKARSK2vsPP1'][0],
+            doseResponses['PKAPKCvsPP1'][0],
+            doseResponses['PKAvsPP2A'][0],
+            doseResponses['PKARSK2vsPP2A'][0],
+            doseResponses['PKAPKCvsPP2A'][0]
+            ]
+
 for i in range(6):
     if i == 0 or i == 3: myColor = 'slateblue'; myAlpha = 0.5
     if i == 1 or i == 4: myColor = 'pink'; myAlpha = 1
     if i == 2 or i == 5: myColor = 'red'; myAlpha = 0.7
+    for ii in range(3):
+        plt.plot((ii+i*3)*np.ones(nr_paramsets), ydat_nH_all[i][ii],'o',markerfacecolor=myColor, alpha = 0.5, markeredgecolor='k',markeredgewidth=0.2)
     plt.bar(np.arange(3)+i*3, ydat_nH[i], yerr = ydat_nH_err[i], color=myColor, alpha = myAlpha)
-
+    
 plt.xticks(range(18), [1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6, 1e-8, 1e-7, 1e-6], rotation = 45)
 plt.ylim([0,3.5])
 
@@ -1306,8 +1523,8 @@ plt.xlabel('[Phosphatase] (mol/L)',fontsize=14.5)
 plt.ylabel('Hill exponent n$_H$',fontsize=14.5)
 
 if saveFigs == True:
-    print(os.path.join(path_figures,'hillExps.png saved'))
-    plt.savefig(os.path.join(path_figures,'hillExps.png'),dpi=300, bbox_inches = "tight")
+    # print(os.path.join(path_figures,'hillExps.png saved'))
+    plt.savefig(os.path.join(path_figures,'hillExps.svg'), bbox_inches = "tight")
 
 
 #EC50s
@@ -1343,11 +1560,11 @@ plt.ylabel('EC50 (M)',fontsize=14.5)
 plt.yscale('log')
 
 if saveFigs == True:
-    plt.savefig(os.path.join(path_figures,'ec50s.png'),dpi=300, bbox_inches = "tight")
+    plt.savefig(os.path.join(path_figures,'ec50s.svg'), bbox_inches = "tight")
 
 
 
-#%% cell 11: Statistical analysis (Table S1)
+#%% cell 11: Statistical analysis (Supplementary Table 1)
 
 print('########################################################')       
 print('Statistical analysis of Hill-exponents') 

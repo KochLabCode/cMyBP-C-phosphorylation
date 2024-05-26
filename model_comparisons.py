@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 """
-This code generates the comparison results between model simulations/fits and experimental data
-shown in Figures 2C and E,3G, S2-S7, S9-S10 and S13-S15 of the publication:
+This code generates the comparison results between model simulations/fits and experimental 
+data shown in Figures 2c and 2e, Figure 3g, Supplementary Figures 2-7, 9-10 and 13-15 
+of the publication:
 
-Thomas Kampourakis, Saraswathi Ponnam, Daniel Koch (2023):
-The cardiac myosin binding protein-C phosphorylation state 
-as a function of multiple protein kinase and phosphatase activities 
-Preprint available under: https://doi.org/10.1101/2023.02.24.529959 
+Thomas Kampourakis, Saraswathi Ponnam, Kenneth S. Campbell, Austin Wellette-Hunsucker, 
+Daniel Koch (2024): The cardiac myosin binding protein-C phosphorylation state as a 
+function of multiple protein kinase and phosphatase activities.
+Nature Communcations (forthcoming)
 
 README:
 Before running this script, make sure that the files 'functions_cMyBPC.py',
@@ -18,7 +19,7 @@ wish to plot results from previous simulations with fitted parameters  (i.e. if 
 setting 'loadData' is set to True), the folder "simulation data" and the corresponding
 data files are required.
 
-Code by Daniel Koch, 2021-2023
+Code by Daniel Koch, 2021-2024
 """
 
 #%% cell 0: Import and misc settings
@@ -26,9 +27,12 @@ import os
 import sys
 
 #paths
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 fileDirectory = os.path.dirname(os.path.abspath(__file__))
 path_simdat = os.path.join(fileDirectory, 'simulation data')   
 path_figures = os.path.join(fileDirectory, 'figures')   
+if not os.path.exists(path_figures):
+    os.makedirs(path_figures)
 path_expdat = os.path.join(fileDirectory, 'experimental data')  
 path_paramsets = os.path.join(fileDirectory, 'parametersets')
  
@@ -47,7 +51,7 @@ plt.rcParams.update({'font.family':'Arial'})
 
 saveFigs = True # save figures as files
 loadData = True # load result from previous simulations if available 
-saveData = False # data of simulations for comparison are saved  
+saveData = True # data of simulations for comparison are saved  
 plotFigures = True # plot results from simulations
 
 
@@ -62,7 +66,6 @@ xPstr = ['4P','3P','2P','1P','0P']
 AIC = {}
 
 
-#%% cell 1: Load experimental data
 datFlNm = [
     os.path.join(path_expdat, 'exp1_plotting.txt'), # ABD/ABGD + PP1      0
     os.path.join(path_expdat, 'exp2_plotting.txt'), # ABD/ABGD + PP2A     1
@@ -150,8 +153,13 @@ for i in exp_ids_PP1:
 #%% cell 2: Plotting Functions
 
 
-def plot_simNexp(expIds, idx_incl, idx_excl, model_nr = 1, plotData = 'all', plotPP1 = True):
+def plot_simNexp(expIds, idx_incl, idx_excl, model_nr = 1, plotData = 'all', plotPP1 = True, **kwargs):
 
+    if "tQSSA" in kwargs:
+        tQSSA = kwargs["tQSSA"]
+    else:
+        tQSSA = False
+        
     # plot simulated data for each parameterset, color coded by exclusion status
     # blue = included, red = excluded
 
@@ -226,19 +234,34 @@ def plot_simNexp(expIds, idx_incl, idx_excl, model_nr = 1, plotData = 'all', plo
                     plt.xlabel("time (s)",fontsize=16)              
           
     if saveFigs == True:
-        for n in expIds:
-            plt.figure(n)
-            if plotData == 'PP1':
-                print("figure "+'model'+str(model_nr)+'_'+expNames[n]+'_PP1_only.png'+" saved")
-                plt.savefig(os.path.join(path_figures,'model'+str(model_nr)+'_'+expNames[n]+'_PP1_only.png'),dpi=300, bbox_inches = "tight")
-            else:
-                print("figure "+'model'+str(model_nr)+'_'+expNames[n]+'.png'+" saved")
-                plt.savefig(os.path.join(path_figures,'model'+str(model_nr)+'_'+expNames[n]+'.png'),dpi=300, bbox_inches = "tight")
-        
-        if plotPP1 == True:  
-            plt.figure(13)
-            print("figure "+'model'+str(model_nr)+'_ABCDvsAD.png'+" saved")
-            plt.savefig(os.path.join(path_figures, 'model'+str(model_nr)+'_ABCDvsAD.png'),dpi=300, bbox_inches = "tight")
+        if tQSSA == False:
+            for n in expIds:
+                plt.figure(n)
+                if plotData == 'PP1':
+                    print("figure "+'model'+str(model_nr)+'_'+expNames[n]+'_PP1_only.svg'+" saved")
+                    plt.savefig(os.path.join(path_figures,'model'+str(model_nr)+'_'+expNames[n]+'_PP1_only.svg'), bbox_inches = "tight")
+                else:
+                    print("figure "+'model'+str(model_nr)+'_'+expNames[n]+'.svg'+" saved")
+                    plt.savefig(os.path.join(path_figures,'model'+str(model_nr)+'_'+expNames[n]+'.svg'), bbox_inches = "tight")
+            
+            if plotPP1 == True:  
+                plt.figure(13)
+                print("figure "+'model'+str(model_nr)+'_ABCDvsAD.svg'+" saved")
+                plt.savefig(os.path.join(path_figures, 'model'+str(model_nr)+'_ABCDvsAD.svg'), bbox_inches = "tight")
+        if tQSSA == True:
+            for n in expIds:
+                plt.figure(n)
+                if plotData == 'PP1':
+                    print("figure "+'model'+str(model_nr)+'_tQSSA_'+expNames[n]+'_PP1_only.svg'+" saved")
+                    plt.savefig(os.path.join(path_figures,'model'+str(model_nr)+'_tQSSA_'+expNames[n]+'_PP1_only.svg'), bbox_inches = "tight")
+                else:
+                    print("figure "+'model'+str(model_nr)+'_tQSSA_'+expNames[n]+'.svg'+" saved")
+                    plt.savefig(os.path.join(path_figures,'model'+str(model_nr)+'_tQSSA_'+expNames[n]+'.svg'), bbox_inches = "tight")
+            
+            if plotPP1 == True:  
+                plt.figure(13)
+                print("figure "+'model'+str(model_nr)+'_tQSSA_ABCDvsAD.svg'+" saved")
+                plt.savefig(os.path.join(path_figures, 'model'+str(model_nr)+'_tQSSA_ABCDvsAD.svg'), bbox_inches = "tight")
 
     plt.show()
             
@@ -292,8 +315,8 @@ def plot_paramDistrPP1(modelStr, idx_incl):
     
     if saveFigs == True:
         plt.figure(14)
-        print("figure "+modelStr+'_'+'_paramDistr_PP1.png'+" saved")
-        plt.savefig(os.path.join(path_figures,modelStr+'_'+'_paramDistr_PP1.png'),dpi=300, bbox_inches = "tight")
+        print("figure "+modelStr+'_'+'_paramDistr_PP1.svg'+" saved")
+        plt.savefig(os.path.join(path_figures,modelStr+'_'+'_paramDistr_PP1.svg'), bbox_inches = "tight")
         
 def plot_paramDistr(modelStr, idx_incl):
     
@@ -339,8 +362,8 @@ def plot_paramDistr(modelStr, idx_incl):
     
     if saveFigs == True:
         plt.figure(14)
-        print("figure "+modelStr+'_'+'_paramDistr.png'+" saved")
-        plt.savefig(os.path.join(path_figures, modelStr+'_'+'_paramDistr.png'),dpi=300, bbox_inches = "tight")
+        print("figure "+modelStr+'_'+'_paramDistr.svg'+" saved")
+        plt.savefig(os.path.join(path_figures, modelStr+'_'+'_paramDistr.svg'), bbox_inches = "tight")
 
 def plot_MSEdistr(modelStr, expIDs, mse, cutoffs):
     plt.figure(333,figsize=(10,7))
@@ -369,7 +392,7 @@ def plot_MSEdistrPP1(modelStr, expIDs, mse, cutoffs):
         plt.xlabel("mean squared error")
     plt.tight_layout()
     
-#%% cell 3: Model 1 - all experiments, Figures 2C, and S2-S4
+#%% cell 3: Model 1 - all experiments, Figure 2c, and Supplementary Figures 3-5
 
 paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model1_GA.npy'))
 paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model1_HJ.npy'))
@@ -463,13 +486,16 @@ if plotFigures:
 
 
 
-#%% cell 4: Model 1 - PP1 data only. Figures S5 and S7
+#%% cell 4: Model 1 - PP1 data only. Supplementary Figures 6 and 8
 
 paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model1_PP1_only_GA.npy'))
 paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model1_PP1_only_HJ.npy'))
 
 paramsGA = fun.reconkK2225(paramsGA)
 paramsHJ = fun.reconkK2225(paramsHJ)
+
+# loadData=False
+# saveData=True
 
 
 # Time setting for simulations
@@ -551,13 +577,16 @@ if plotFigures:
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#%% cell 5: Model 2 - PP1 data only, Figures S6 and S7
+#%% cell 5: Model 2 - PP1 data only, Supplementary Figures 7 and 8
 
 paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model2_PP1_only_GA.npy'))
 paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model2_PP1_only_HJ.npy'))
 
 paramsGA = fun.reconkK2225(paramsGA)
 paramsHJ = fun.reconkK2225(paramsHJ)
+
+loadData=True
+saveData=False
 
 # Time setting for simulations
 t0 = 0
@@ -596,7 +625,7 @@ if loadData == False:
     
     if saveData:
         np.save(os.path.join(path_simdat, 'simDat_rel_fracs_m2_pp1.npy'),simDat_rel_fracs)
-        np.save(os.path.join(path_simdat, 'simDat_m2_pp1.npy',simDat))
+        np.save(os.path.join(path_simdat, 'simDat_m2_pp1.npy'),simDat)
 else:    
     simDat_rel_fracs = np.load(os.path.join(path_simdat,'simDat_rel_fracs_m2_pp1.npy'))
     simDat = np.load(os.path.join(path_simdat, 'simDat_m2_pp1.npy'))
@@ -657,15 +686,15 @@ if plotFigures:
 
     if saveFigs == True:
         plt.figure(666,figsize=(3,3))
-        print("figure model2_distrAdditionalParams.png saved")
-        plt.savefig(os.path.join(path_figures,'model2_distrAdditionalParams.png'),dpi=300, bbox_inches = "tight")
+        print("figure model2_distrAdditionalParams.svg saved")
+        plt.savefig(os.path.join(path_figures,'model2_distrAdditionalParams.svg'), bbox_inches = "tight")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  
 
-#%% cell 6: Model 3 - PP1 data only, Figures 2 and S9
+#%% cell 6: Model 3 - PP1 data only, Figure 2e and Supplementary Figure 10
 
 paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model3_PP1_only_GA.npy'))
 paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model3_PP1_only_HJ.npy'))
@@ -709,8 +738,8 @@ if loadData == False:
     simDat_rel_fracs = np.reshape(simDat_rel_fracs, (nr_paramsets,12,5,npts+1))
     
     if saveData:
-        np.save(os.path.join(path_simdat,'simDat_rel_fracs_m3_pp1.npy',simDat_rel_fracs))
-        np.save(os.path.join(path_simdat,'simDat_m3_pp1.npy',simDat))
+        np.save(os.path.join(path_simdat,'simDat_rel_fracs_m3_pp1.npy'),simDat_rel_fracs)
+        np.save(os.path.join(path_simdat,'simDat_m3_pp1.npy'),simDat)
 else:    
     simDat_rel_fracs = np.load(os.path.join(path_simdat,'simDat_rel_fracs_m3_pp1.npy'))
     simDat = np.load(os.path.join(path_simdat,'simDat_m3_pp1.npy'))
@@ -781,15 +810,15 @@ if plotFigures:
     
     # if saveFigs == True:
     #     plt.figure(666,figsize=(3,4))
-    #     print("figure model3_distrAdditionalParams.png saved")
-    #     plt.savefig(os.path.join(path_figures,'model3_distrAdditionalParams.png'),dpi=300, bbox_inches = "tight")
+    #     print("figure model3_distrAdditionalParams.svg saved")
+    #     plt.savefig(os.path.join(path_figures,'model3_distrAdditionalParams.svg'), bbox_inches = "tight")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#%% cell 7: Model 4 - PP1 data only, Figures 2 and S10
+#%% cell 7: Model 4 - PP1 data only, Figure 2e and Supplementary Figures 11
 
 paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model4_PP1_only_GA.npy'))
 paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model4_PP1_only_HJ.npy'))
@@ -935,14 +964,14 @@ if plotFigures:
     
     if saveFigs == True:
         plt.figure(666,figsize=(3,4))
-        print("figure model4_distrAdditionalParams_PP1.png saved")
-        plt.savefig(os.path.join(path_figures,'model4_distrAdditionalParams_PP1.png'),dpi=300, bbox_inches = "tight")
+        print("figure model4_distrAdditionalParams_PP1.svg saved")
+        plt.savefig(os.path.join(path_figures,'model4_distrAdditionalParams_PP1.svg'), bbox_inches = "tight")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#%% cell 8: Model 4 - all experiments, Figures S13, S14 and S15
+#%% cell 8: Model 4 - all experiments, Supplementary Figures 14, 15 and 16
 
 paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model4_PP1_PP2A_GA.npy'))
 paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model4_PP1_PP2A_HJ.npy'))
@@ -1131,8 +1160,8 @@ if plotFigures:
     
     if saveFigs == True:
         plt.figure(666,figsize=(3,4))
-        print("figure model4_distrAdditionalParams.png saved")
-        plt.savefig(os.path.join(path_figures,'model4_distrAdditionalParams.png'),dpi=300, bbox_inches = "tight")
+        print("figure model4_distrAdditionalParams.svg saved")
+        plt.savefig(os.path.join(path_figures,'model4_distrAdditionalParams.svg'), bbox_inches = "tight")
 
     
 #Calculate lifetime of Atr
@@ -1141,7 +1170,7 @@ lifetimes = []
 for i in paramsHJ[idx_incl_m4,64]:
     lifetimes.append(1/i)
     
-#%% cell 9: specificity ratios PKA/PPX  (Figure 3H, run cell 3 and cell 8 first)
+#%% cell 9: specificity ratios PKA/PPX  (Figure 3g, run cell 3 and cell 8 first)
 
 spec = paramsHJ[idx_incl_m4,2:32].T/paramsHJ[idx_incl_m4,32:62].T
 
@@ -1159,7 +1188,6 @@ for i in range(spec.shape[1]):
     plt.plot([0,1],[r1[i],r2[i]],'-',color = 'b', alpha=0.15,lw=0.75)
     plt.plot([2,3],[r3[i],r4[i]],'-',color = 'b', alpha=0.15,lw=0.75)
 
-# plt.title('Specificity ratio \n phosphorylation cycle \n \n \n', fontsize=13)
 ax = plt.gca()
 ax.set_xticks(np.arange(4))
 xlabs = ['$\\alpha\\beta \\ \\leftrightarrows \\ \\alpha\\beta\\gamma$',
@@ -1175,7 +1203,7 @@ plt.ylabel("Specificity ratio",size=14.5)
 plt.ylim(0,70)
 plt.xlim(-0.5,3.5)
 
-plt.savefig(os.path.join(path_figures,'specificitiesRatios.png'),dpi=300, bbox_inches = "tight")
+plt.savefig(os.path.join(path_figures,'specificitiesRatios.svg'), bbox_inches = "tight")
 
 mw_pp1 = stats.mannwhitneyu(r1,r2, alternative='two-sided')
 mw_pp2a = stats.mannwhitneyu(r3,r4, alternative='two-sided')
@@ -1183,46 +1211,13 @@ mw_pp2a = stats.mannwhitneyu(r3,r4, alternative='two-sided')
 print("Result Mann-Whitney test specificity ratios pp1: \n", mw_pp1,'\n\n',
       "Result Mann-Whitney test specificity ratios pp2a: \n", mw_pp2a,'\n\n')
 
-# Comparison specifity constants for PP1 and PP2A (run cell 3 and cell 8 first)
-
-# spec = paramsHJ[idx_incl_m4,2:32].T/paramsHJ[idx_incl_m4,32:62].T
-
-# rxs_pp1 = [1,4,7,10,13,16,19,22,25,28]
-# rxs_pp2a = [2,5,8,11,14,17,20,23,26,29]
-# rxs_pka = [0,3,6,21,24,27]
-
-# specRatio_pp1_pp2a = spec[rxs_pp1]/spec[rxs_pp2a]
-
-# plt.figure()
-# plt.plot(specRatio_pp1_pp2a,'o',color='k',alpha=0.15,ms=5)
-# plt.yscale('log')
-# plt.hlines(1,0,9,colors='red',linestyles='dashed')
-
-# xlabs = ['$\\alpha \\rightarrow$ 0P',
-#     '$\\alpha\\beta \\rightarrow \\alpha$\'',
-#     '$\\alpha\\beta\\gamma \\rightarrow \\alpha\\beta$',
-#     '$\\delta \\rightarrow$ 0P',
-#     '$\\alpha\\delta \\rightarrow \\alpha$\'',
-#     '$\\alpha\\beta\\delta \\rightarrow \\alpha\\beta$',
-#     '$\\alpha\\beta\\gamma\\delta \\rightarrow \\alpha\\gamma\\beta$',
-#     '$\\alpha\\delta \\rightarrow \\delta$',
-#     '$\\alpha\\beta\\delta \\rightarrow \\alpha\\delta$',
-#     '$\\alpha\\beta\\gamma\\delta \\rightarrow \\alpha\\beta\\delta$']
-
-# plt.title('Reaction')
-# ax = plt.gca()
-# ax.set_xticks(np.arange(10))
-# ax.set_xticklabels(xlabs,rotation = 90)  
-# # ax.tick_params(top=True, labeltop=True, bottom=False, labelbottom=False)
-# plt.ylabel("$(k_{cat,PP1}/K_{m,PP1})/(k_{cat,PP2A}/K_{m,PP2A})$")
-# plt.savefig(os.path.join(path_figures,'specificitiesPP1vsPP2a.png'),dpi=300, bbox_inches = "tight")
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#%% cell 10: Calculate statistics for AIC:  model 1-4, PP1 data. Figure 2 and Figure S7 (run cells 4-7 first)
+#%% cell 10: Calculate statistics for AIC:  model 1-4, PP1 data. Figure 2e and Supplementary Figure 8 (run cells 4-7 first)
 
 print ('\n \n Calculate statistics for AIC:  model 1-4, PP1 data...\n')
 
@@ -1243,8 +1238,8 @@ plt.xlabel('AIC score',fontsize=13.5)
 plt.tight_layout()
 
 if saveFigs == True:
-    print("figure AIC_m1m2_pp1.png saved")
-    plt.savefig(os.path.join(path_figures,'AIC_m1m2m4_pp1.png'),dpi=300, bbox_inches = "tight")
+    print("figure AIC_m1m2_pp1.svg saved")
+    plt.savefig(os.path.join(path_figures,'AIC_m1m2m4_pp1.svg'), bbox_inches = "tight")
 
 
 #plot AIC distribution for models 1,3 and 4
@@ -1265,8 +1260,8 @@ plt.xlabel('AIC score',fontsize=13.5)
 plt.tight_layout()
 
 if saveFigs == True:
-    print("figure AIC_m1m3m4_pp1.png saved")
-    plt.savefig(os.path.join(path_figures,'AIC_m1m3m4_pp1.png'),dpi=500, bbox_inches = "tight")
+    print("figure AIC_m1m3m4_pp1.svg saved")
+    plt.savefig(os.path.join(path_figures,'AIC_m1m3m4_pp1.svg'),dpi=500, bbox_inches = "tight")
 
 
 print('Distribution measures of AIC values')
@@ -1306,7 +1301,7 @@ print("Result Kruskal-Wallis test model 1,3 and 4: ", kw_result,'\n\n',
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-#%% cell 11: Calculate statistics for AIC:  model 1 and 4, all data. Figure S15 (run cells 3 and 8 first)
+#%% cell 11: Calculate statistics for AIC:  model 1 and 4, all data. Supplementary Figure 16b (run cells 3 and 8 first)
 print ('\n \n Calculate statistics for AIC:  model 1 and 4, all data....\n')
 
 #plot AIC distribution for models 1 and 4
@@ -1325,8 +1320,8 @@ plt.xlabel('AIC score',fontsize=13.5)
 plt.tight_layout()
 
 if saveFigs == True:
-    print("figure AIC_m1m4.png saved")
-    plt.savefig(os.path.join(path_figures,'AIC_m1m4.png'),dpi=300, bbox_inches = "tight")
+    print("figure AIC_m1m4.svg saved")
+    plt.savefig(os.path.join(path_figures,'AIC_m1m4.svg'), bbox_inches = "tight")
 
 print('Distribution measures of AIC values')
 print('Model 1:\n', 'mean: ', np.mean(AIC['model 1, all data']), ' SD: ', np.std(AIC['model 1, all data']), ' variance: ', np.var(AIC['model 1, all data']))
@@ -1340,5 +1335,348 @@ tt_Mod1vsMod4 = stats.ttest_ind(AIC['model 1, all data'], AIC['model 4, all data
 
 print("\n ~~~~~~~ Statistical analysis of AIC distributions ~~~~~~~ \n")
 print("Result Welch's t-test model 1 vs 4: \n", tt_Mod1vsMod4)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#%% cell 12: Model 1 tQSSA - all experiments (only for validity checks, data not shown in manuscript)
+
+loadData = True
+
+paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model1_tQSSA_GA.npy'))
+paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model1_tQSSA_HJ.npy'))
+
+paramsGA = fun.reconkK2225(paramsGA)
+paramsHJ = fun.reconkK2225(paramsHJ)
+
+# Time setting for simulations
+t0 = 0
+tend = 3600
+h = 1
+npts = int(tend/h)
+time = np.linspace(t0,tend,npts+1)        
+
+simDat = []      
+simDat_rel_fracs = []
+nr_paramsets = paramsHJ.shape[0]
+
+if loadData == False:   
+    for p in range(nr_paramsets):
+        print(p)
+        for n in range(12):
+        
+            ICs = exp_ICs[n]
+            
+            # parameters
+            k = paramsHJ[p,2:32]
+            K = paramsHJ[p,32:62]
+            
+            params = [k,K,c_enzymes_exp[n]]
+            output = fun.odeRK4(mod.cMyBPC_model1_tQSSA,ICs,params,t0,tend+1,h)
+            simDat.append(output)
+            simDat_rel_fracs.append([
+                fun.fraction(output,'4P'),
+                fun.fraction(output,'3P'),
+                fun.fraction(output,'2P'),
+                fun.fraction(output,'1P'),
+                fun.fraction(output,'0P'),
+                ])
+            
+    simDat = np.reshape(simDat, (nr_paramsets,12,8,npts+1))        
+    simDat_rel_fracs = np.reshape(simDat_rel_fracs, (nr_paramsets,12,5,npts+1))
+    
+    if saveData:
+        np.save(os.path.join(path_simdat,'simDat_rel_fracs_m1_tQSSA.npy'),simDat_rel_fracs)
+        np.save(os.path.join(path_simdat,'simDat_m1_tQSSA.npy'),simDat)
+else:
+    simDat_rel_fracs = np.load(os.path.join(path_simdat,'simDat_rel_fracs_m1_tQSSA.npy'))
+    simDat = np.load(os.path.join(path_simdat,'simDat_m1_tQSSA.npy'))
+
+# Mean squared errors between interpolated data
+# and simulations for each experiment and each parameter set
+
+mse_m1_tQSSA = fun.meanSqrtErr(expDat_interpol, simDat_rel_fracs, range(12))
+
+# Exclude parametersets for which MSE for any of the PP1 experiments 
+# exceeds the mean by more than X std devs (cutoff). 
+cutoffs = [1,1.5,1.5,1.5,1.5,0.25,
+            1.5,1.5,1.5,1.5,1.5,1.5]
+
+# indices of parametersets that are to be included/ excluded
+idx_incl_m1_tQSSA, idx_excl_m1_tQSSA = fun.filterParamSets(mse_m1_tQSSA, cutoffs) 
+
+# filtering included PKA parametersets only - for model 4
+cutoffs_PKA = [1.5,1.5]
+idx_incl_m1_PKA_tQSSA, idx_excl_m1_PKA_tQSSA = fun.filterParamSets(mse_m1_tQSSA[:,[10,11]], cutoffs_PKA) 
+
+# Plot MSE distributions and cutoff values for parametersets
+
+plot_MSEdistr('model 1 tQSSA, all experiments', range(12), mse_m1_tQSSA, cutoffs)
+
+# calculate the AIC values for included parametersets of model 1
+
+mse_avg = np.mean(mse_m1_tQSSA,axis=1)
+
+AICs = []
+for i in range(len(mse_avg)):
+    AICs.append(fun.AIC(mse_avg[i], paramsHJ.shape[1], sum(n_obs)))
+AICs = np.asarray(AICs)
+AIC['model 1 tQSSA, all data'] = AICs[idx_incl_m1_tQSSA]
+
+if plotFigures:
+    #plot simulations, experimental data and distribution of fitted parameters
+    plot_simNexp(range(12),idx_incl_m1_tQSSA, idx_excl_m1_tQSSA, 1,tQSSA = True)
+    plot_paramDistr('model 1 tQSSA', idx_incl_m1_tQSSA)
+    
+
+# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#%% cell 13: Model 4 tQSSA - all experiments 
+
+# loadData = False # load result from previous simulations if available 
+
+paramsGA = np.load(os.path.join(path_paramsets,'resultsPE_model4_tQSSA_PP1_PP2A_GA.npy'))
+paramsHJ = np.load(os.path.join(path_paramsets,'resultsPE_model4_tQSSA_PP1_PP2A_HJ.npy'))
+
+# Use PKA parameters from model 1
+paramsHJm1 = np.load(os.path.join(path_paramsets,'resultsPE_model1_tQSSA_HJ.npy'))
+paramsHJm1 = fun.reconkK2225(paramsHJm1)
+paramsHJ[np.where(paramsHJ<1e-12)] = 0
+paramsGA = fun.reconkK2225(paramsGA)
+paramsHJ = fun.reconkK2225(paramsHJ)
+
+# Use PKA parameters from model 1
+rxsPKA = np.array([1,4,7,22,25,28])+1
+params_PKA = np.union1d(rxsPKA,rxsPKA+30)
+x = paramsHJm1[idx_incl_m1_PKA_tQSSA,:]
+x = x[:,params_PKA]
+paramsHJ[:len(idx_incl_m1_PKA_tQSSA),params_PKA] = x
+paramsHJ[len(idx_incl_m1_PKA_tQSSA):,params_PKA] = x[paramsHJ[len(idx_incl_m1_PKA_tQSSA):,params_PKA].shape[0],:]
+
+
+# Time setting for simulations
+t0 = 0
+tend = 3600
+h = 1
+npts = int(tend/h)
+time = np.linspace(t0,tend,npts+1)        
+
+simDat = []      
+simDat_rel_fracs = []
+nr_paramsets = paramsHJ.shape[0]
+
+if loadData == False:   
+    for p in range(nr_paramsets):
+        print(p)
+        print("paramset ", str(int(paramsHJ[p,0])))
+        for n in range(12):
+            
+            #P0,A,Atr,AB,ABG,D,AD,ABD,ABGD
+            ICs = [exp_ICs[n,0],exp_ICs[n,1],0,exp_ICs[n,2],exp_ICs[n,3],exp_ICs[n,4],exp_ICs[n,5],exp_ICs[n,6],exp_ICs[n,7]]
+            
+            # parameters
+            k = paramsHJ[p,2:32]
+            K = paramsHJ[p,32:62]
+            additionalParams = paramsHJ[p,62:]
+            params = [k,K,additionalParams,c_enzymes_exp[n]]
+            
+            output = np.array([])
+            try:
+                output = fun.odeRK4(mod.cMyBPC_model4_full,ICs,params,t0,tend+1,h)
+                if output[np.where(output<0)].shape[0] > 0:
+                    print("Numerical issue occured: negative values\n retrying with reduced stepsize...")
+                    h2 = 0.1
+                    output = fun.odeRK4(mod.cMyBPC_model4_full_tQSSA,ICs,params,t0,tend+1,h2)
+                    output = output[:,::10]
+                    if output[np.where(output<0)].shape[0] == 0:
+                        print("succeeded!")
+                    else:
+                        print("failed!")                    
+            except RuntimeWarning:
+                try:
+                    print("Numerical issue occured: runtime warning\n retrying with reduced stepsize: 0.1")
+                    h2 = 0.1
+                    output = fun.odeRK4(mod.cMyBPC_model4_full_tQSSA,ICs,params,t0,tend+1,h2)
+                    output = output[:,::10]
+                except: 
+                      print("Numerical issue occured: runtime warning\n retrying with reduced stepsize: 0.01")
+                      h2 = 0.01
+                      output = fun.odeRK4(mod.cMyBPC_model4_full_tQSSA,ICs,params,t0,tend+1,h2)
+                      output = output[:,::100]   
+                
+            simDat.append(output)
+            simDat_rel_fracs.append([
+                fun.fraction(output,'4P',4),
+                fun.fraction(output,'3P',4),
+                fun.fraction(output,'2P',4),
+                fun.fraction(output,'1P',4),
+                fun.fraction(output,'0P',4),
+                ])
+            
+    simDat = np.reshape(simDat, (nr_paramsets,12,9,npts+1))        
+    simDat_rel_fracs = np.reshape(simDat_rel_fracs, (nr_paramsets,12,5,npts+1))
+    
+    if saveData:
+        np.save(os.path.join(path_simdat,'simDat_rel_fracs_m4_tQSSA_pp1,pp2a.npy'),simDat_rel_fracs)
+        np.save(os.path.join(path_simdat,'simDat_m4_tQSSA_pp1,pp2a.npy'),simDat)
+else:    
+    simDat_rel_fracs = np.load(os.path.join(path_simdat,'simDat_rel_fracs_m4_tQSSA_pp1,pp2a.npy'))
+    simDat = np.load(os.path.join(path_simdat,'simDat_m4_tQSSA_pp1,pp2a.npy'))
+
+    
+# Mean squared errors between interpolated data
+# and simulations for each experiment and each parameter set
+
+mse = fun.meanSqrtErr(expDat_interpol, simDat_rel_fracs, range(12))
+
+# Exclude parametersets for which MSE for any of the PP1 experiments 
+# exceeds the mean by more than X std devs (cutoff). 
+
+cutoffs = [0,0.75,0.75, 0.5,1,0, 1.5,1.5,1.5, 1.5,5,5]    
+
+
+#convert interpolated experimental data into numpy array
+npar_expDatInterp = np.zeros([12,5,3601])
+for i in range(12):
+    npar_expDatInterp[i,:,:] = expDat_interpol[i] 
+
+idx_incl_m4_tQSSA, idx_excl_m4_tQSSA  = fun.filterParamSets(mse, cutoffs, 
+                                          npar_expDatInterp, simDat_rel_fracs, 
+                                          [0,1,2,5,9], [0.2,0.2,0.15,0.15,0.18]) 
+
+#save final parameter set
+paramset_final_tQSSA = paramsHJ[idx_incl_m4_tQSSA,:]
+np.save(os.path.join(path_paramsets,'paramset_final_tQSSA.npy'),paramset_final_tQSSA)
+
+# Plot MSE distributions and cutoff values for parametersets
+
+plot_MSEdistr('model 4 tQSSA, all experiments', range(12), mse, cutoffs)
+
+# calculate the AIC values for included parametersets of model 4
+
+mse_avg = np.mean(mse,axis=1)
+
+AICs = []
+for i in range(len(mse_avg)):
+    AICs.append(fun.AIC(mse_avg[i], paramsHJ.shape[1], sum(n_obs)))
+AICs = np.asarray(AICs)
+AIC['model 4 tQSSA, all data'] = AICs[idx_incl_m4_tQSSA]
+
+if plotFigures:
+       
+    #plot simulations, experimental data and distribution of fitted parameters
+    plot_simNexp(range(12),idx_incl_m4_tQSSA, idx_excl_m4_tQSSA, 4,'all',False, tQSSA = True)
+    plot_paramDistr('model 4 tQSSA', idx_incl_m4_tQSSA)
+    
+    # plot distribution of model specific parameters
+    plt.figure(666,figsize=(7.5,4))
+    plt.figure(666).suptitle('model 4 tQSSA, all experiments, additional parameters')
+    
+    plt.subplot(1,6,1)
+    for i in idx_incl_m4_tQSSA:
+        plt.plot(paramsHJ[i,62].T, 'ok',alpha=0.15,ms=5)
+    ax = plt.gca()
+    ax.set_xticks([0])
+    ax.set_xticklabels(['k$_{2, fast}$'])
+    plt.ylabel("parameter value ($s^{-1}$)")
+    
+    plt.subplot(1,6,2)
+    for i in idx_incl_m4_tQSSA:
+        plt.plot(paramsHJ[i,63].T, 'ok',alpha=0.15,ms=5)
+    ax = plt.gca()
+    ax.set_xticks([0])
+    ax.set_xticklabels(['K$_{2, fast}$'])
+    plt.ylabel("parameter value ($M$)")
+    
+    plt.subplot(1,6,3)
+    for i in idx_incl_m4_tQSSA:
+        plt.plot(paramsHJ[i,66].T, 'ok',alpha=0.15,ms=5)
+    ax = plt.gca()
+    ax.set_xticks([0])
+    ax.set_xticklabels(['k$_{3, fast}$'])
+    plt.ylabel("parameter value ($s^{-1}$)")
+    
+    plt.subplot(1,6,4)
+    for i in idx_incl_m4_tQSSA:
+        plt.plot(paramsHJ[i,67].T, 'ok',alpha=0.15,ms=5)
+    ax = plt.gca()
+    ax.set_xticks([0])
+    ax.set_xticklabels(['K$_{3, fast}$'])
+    plt.ylabel("parameter value ($M$)")
+    
+    plt.subplot(1,6,5)
+    for i in idx_incl_m4_tQSSA:
+        plt.plot(paramsHJ[i,64].T, 'ok',alpha=0.15,ms=5)
+    ax = plt.gca()
+    ax.set_xticks([0])
+    ax.set_xticklabels(['$k_{iso,F}$'])
+    plt.ylabel("parameter value ($s^{-1}$)")
+    
+    plt.subplot(1,6,6)
+    for i in idx_incl_m4_tQSSA:
+        plt.plot(paramsHJ[i,65].T, 'ok',alpha=0.15,ms=5)
+    ax = plt.gca()
+    ax.set_xticks([0])
+    ax.set_xticklabels(['$k_{iso,R}$'])
+    plt.ylabel("parameter value ($s^{-1}$)")
+    
+    plt.tight_layout()
+    
+    if saveFigs == True:
+        plt.figure(666,figsize=(3,4))
+        print("figure model4_tQSSA_distrAdditionalParams.svg saved")
+        plt.savefig(os.path.join(path_figures,'model4_tQSSA_distrAdditionalParams.svg'), bbox_inches = "tight")
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+#%% cell 11: Calculate statistics for AIC:  model 1 and 4, all data.
+print ('\n \n Calculate statistics for AIC:  model 1 and 4, Michaelis Menten vs tQSSA, all data....\n')
+
+#plot AIC distribution for models 1 and 4
+plt.figure(figsize=(4,3))
+minAIC = np.min([np.min(AIC['model 1, all data']), np.min(AIC['model 1 tQSSA, all data']), np.min(AIC['model 4 tQSSA, all data']), np.min(AIC['model 4, all data'])])
+maxAIC = np.max([np.max(AIC['model 1, all data']), np.max(AIC['model 1 tQSSA, all data']), np.max(AIC['model 4 tQSSA, all data']), np.max(AIC['model 4, all data'])])
+bins = np.linspace(minAIC,maxAIC,25)
+
+plt.hist(AIC['model 1, all data'],bins,color='b',alpha=0.33,label='model 1')
+plt.hist(AIC['model 1 tQSSA, all data'],bins,color='purple',alpha=0.33,label='model 1, tQSSA')
+plt.hist(AIC['model 4, all data'],bins,color='m',alpha=0.33,label='model 4')
+plt.hist(AIC['model 4 tQSSA, all data'],bins,color='r',alpha=0.33,label='model 4,tQSSA')
+plt.ylim((0,50))
+plt.yticks([0,25,50])
+plt.legend(['model 1', 'model 1, tQSSA', 'model 4', 'model 4, tQSSA'])
+plt.ylabel('frequency',fontsize=13.5)
+plt.xlabel('AIC score',fontsize=13.5)
+plt.tight_layout()
+
+if saveFigs == True:
+    print("figure AIC_m1m4.svg saved")
+    plt.savefig(os.path.join(path_figures,'AIC_m1m4.svg'), bbox_inches = "tight")
+
+print('Distribution measures of AIC values')
+print('Model 1:\n', 'mean: ', np.mean(AIC['model 1, all data']), ' SD: ', np.std(AIC['model 1, all data']), ' variance: ', np.var(AIC['model 1, all data']))
+print('Model 4:\n', 'mean: ', np.mean(AIC['model 4, all data']), ' SD: ', np.std(AIC['model 4, all data']), ' variance: ', np.var(AIC['model 4, all data']))
+
+print('Shapiro-Wilk tests') #if pvalue < 0.05, values are likely not from normal distribution
+print('Model 1:', stats.shapiro(AIC['model 1, all data']))
+print('Model 4:', stats.shapiro(AIC['model 4, all data']))
+  
+tt_Mod1vsMod4 = stats.ttest_ind(AIC['model 1, all data'], AIC['model 4, all data'], equal_var=False)
+
+print("\n ~~~~~~~ Statistical analysis of AIC distributions ~~~~~~~ \n")
+print("Result Welch's t-test model 1 vs 4: \n", tt_Mod1vsMod4)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
 
